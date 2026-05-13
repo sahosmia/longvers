@@ -4,16 +4,22 @@ import { Search, Plus, Trash2, Edit3, X } from "lucide-react";
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 
-interface Product {
-    id: string;
+interface Category {
+    id: number;
     name: string;
-    name_bn: string;
-    category: string;
+}
+
+interface Product {
+    id: number;
+    name: string;
+    category_id: number;
+    category: Category;
     price: number;
 }
 
 interface ProductsProps {
     products: Product[];
+    categories: Category[];
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -25,21 +31,19 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const formatCurrency = (n: number) => `৳${n.toLocaleString("en-BD")}`;
 
-export default function Products({ products }: ProductsProps) {
+export default function Products({ products, categories }: ProductsProps) {
     const [search, setSearch] = useState("");
     const [showModal, setShowModal] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
     const { data, setData, post, put, delete: destroy, reset, errors, processing } = useForm({
-        id: '',
         name: '',
-        name_bn: '',
-        category: '',
+        category_id: '',
         price: '',
     });
 
     const filtered = products.filter((p) =>
-        p.name.toLowerCase().includes(search.toLowerCase()) || p.name_bn.includes(search) || p.id.toLowerCase().includes(search.toLowerCase())
+        p.name.toLowerCase().includes(search.toLowerCase()) || p.id.toString().includes(search)
     );
 
     const openCreateModal = () => {
@@ -51,10 +55,8 @@ export default function Products({ products }: ProductsProps) {
     const openEditModal = (product: Product) => {
         setEditingProduct(product);
         setData({
-            id: product.id,
             name: product.name,
-            name_bn: product.name_bn,
-            category: product.category,
+            category_id: product.category_id.toString(),
             price: product.price.toString(),
         });
         setShowModal(true);
@@ -76,7 +78,7 @@ export default function Products({ products }: ProductsProps) {
         }
     };
 
-    const handleDelete = (id: string) => {
+    const handleDelete = (id: number) => {
         if (confirm('Are you sure you want to delete this product?')) {
             destroy(route('products.destroy', id));
         }
@@ -84,7 +86,7 @@ export default function Products({ products }: ProductsProps) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Laurnverse - Products" />
+            <Head title="Products - Laurnverse" />
             <div className="p-4 space-y-4">
                 <div className="flex items-center justify-between">
                     <div>
@@ -126,13 +128,10 @@ export default function Products({ products }: ProductsProps) {
                                 {filtered.map((p) => (
                                     <tr key={p.id} className="border-b border-neutral-50 dark:border-neutral-800 hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors">
                                         <td className="px-5 py-3 font-mono text-xs text-neutral-500">{p.id}</td>
-                                        <td className="px-3 py-3">
-                                            <div className="font-medium text-neutral-800 dark:text-neutral-200">{p.name}</div>
-                                            <div className="text-xs text-neutral-400">{p.name_bn}</div>
-                                        </td>
+                                        <td className="px-3 py-3 font-medium text-neutral-800 dark:text-neutral-200">{p.name}</td>
                                         <td className="px-3 py-3">
                                             <span className="px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-[10px] font-semibold text-neutral-600 dark:text-neutral-400">
-                                                {p.category}
+                                                {p.category?.name}
                                             </span>
                                         </td>
                                         <td className="px-3 py-3 text-right font-bold text-neutral-900 dark:text-neutral-100">{formatCurrency(Number(p.price))}</td>
@@ -160,58 +159,31 @@ export default function Products({ products }: ProductsProps) {
                         </div>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
-                                <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Product ID (Unique)</label>
+                                <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Product Name</label>
                                 <input
                                     type="text"
-                                    value={data.id}
-                                    onChange={e => setData('id', e.target.value)}
-                                    className="w-full mt-1 border border-neutral-200 dark:border-neutral-800 rounded-xl px-3 py-2 text-sm bg-transparent dark:text-neutral-100 disabled:opacity-50"
+                                    value={data.name}
+                                    onChange={e => setData('name', e.target.value)}
+                                    className="w-full mt-1 border border-neutral-200 dark:border-neutral-800 rounded-xl px-3 py-2 text-sm bg-transparent dark:text-neutral-100"
                                     required
-                                    disabled={!!editingProduct}
                                 />
-                                {errors.id && <p className="text-xs text-red-500 mt-1">{errors.id}</p>}
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Name (English)</label>
-                                    <input
-                                        type="text"
-                                        value={data.name}
-                                        onChange={e => setData('name', e.target.value)}
-                                        className="w-full mt-1 border border-neutral-200 dark:border-neutral-800 rounded-xl px-3 py-2 text-sm bg-transparent dark:text-neutral-100"
-                                        required
-                                    />
-                                    {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
-                                </div>
-                                <div>
-                                    <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Name (Bangla)</label>
-                                    <input
-                                        type="text"
-                                        value={data.name_bn}
-                                        onChange={e => setData('name_bn', e.target.value)}
-                                        className="w-full mt-1 border border-neutral-200 dark:border-neutral-800 rounded-xl px-3 py-2 text-sm bg-transparent dark:text-neutral-100"
-                                        required
-                                    />
-                                    {errors.name_bn && <p className="text-xs text-red-500 mt-1">{errors.name_bn}</p>}
-                                </div>
+                                {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Category</label>
                                     <select
-                                        value={data.category}
-                                        onChange={e => setData('category', e.target.value)}
+                                        value={data.category_id}
+                                        onChange={e => setData('category_id', e.target.value)}
                                         className="w-full mt-1 border border-neutral-200 dark:border-neutral-800 rounded-xl px-3 py-2 text-sm bg-transparent dark:text-neutral-100"
                                         required
                                     >
                                         <option value="">Select Category</option>
-                                        <option value="Gents">Gents</option>
-                                        <option value="Ladies">Ladies</option>
-                                        <option value="Kids">Kids</option>
-                                        <option value="Household">Household</option>
-                                        <option value="Others">Others</option>
+                                        {categories.map(c => (
+                                            <option key={c.id} value={c.id}>{c.name}</option>
+                                        ))}
                                     </select>
-                                    {errors.category && <p className="text-xs text-red-500 mt-1">{errors.category}</p>}
+                                    {errors.category_id && <p className="text-xs text-red-500 mt-1">{errors.category_id}</p>}
                                 </div>
                                 <div>
                                     <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Price (৳)</label>
