@@ -13,26 +13,17 @@ interface DashboardProps {
         pending: number;
     };
     top_clients: any[];
+    dailyRevenue: any[];
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Dashboard',
-        href: '/laurnverse/dashboard',
+        href: '/dashboard',
     },
 ];
 
 const formatCurrency = (n: number) => `৳${n.toLocaleString("en-BD")}`;
-
-const DAILY_REVENUE = [
-    { day: "May 1", revenue: 1850, paid: 1600, due: 250 },
-    { day: "May 2", revenue: 2200, paid: 2000, due: 200 },
-    { day: "May 3", revenue: 1400, paid: 900, due: 500 },
-    { day: "May 4", revenue: 3100, paid: 2800, due: 300 },
-    { day: "May 5", revenue: 2750, paid: 2750, due: 0 },
-    { day: "May 6", revenue: 1900, paid: 1200, due: 700 },
-    { day: "May 7", revenue: 2400, paid: 2100, due: 300 },
-];
 
 function StatCard({ icon: Icon, label, value, sub, color = "blue", trend }: any) {
   const colorMap: any = {
@@ -64,7 +55,7 @@ function StatCard({ icon: Icon, label, value, sub, color = "blue", trend }: any)
   );
 }
 
-export default function Dashboard({ stats, top_clients }: DashboardProps) {
+export default function Dashboard({ stats, top_clients, dailyRevenue }: DashboardProps) {
     const pieData = [
         { name: "Paid", value: Number(stats.total_paid), fill: "#10b981" },
         { name: "Due", value: Number(stats.total_due), fill: "#ef4444" },
@@ -74,7 +65,7 @@ export default function Dashboard({ stats, top_clients }: DashboardProps) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Laurnverse - Dashboard" />
+            <Head title="Dashboard - Laurnverse" />
             <div className="p-4 space-y-6">
                 <div>
                     <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">Dashboard</h1>
@@ -82,18 +73,18 @@ export default function Dashboard({ stats, top_clients }: DashboardProps) {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                    <StatCard icon={Package} label="Total Orders" value={stats.total_orders} color="blue" trend={12} />
-                    <StatCard icon={DollarSign} label="Total Revenue" value={formatCurrency(Number(stats.total_revenue))} color="purple" trend={8} />
-                    <StatCard icon={Check} label="Total Paid" value={formatCurrency(Number(stats.total_paid))} color="green" trend={15} />
-                    <StatCard icon={AlertCircle} label="Total Due" value={formatCurrency(Number(stats.total_due))} color="red" trend={-5} />
+                    <StatCard icon={Package} label="Total Orders" value={stats.total_orders} color="blue" />
+                    <StatCard icon={DollarSign} label="Total Revenue" value={formatCurrency(Number(stats.total_revenue))} color="purple" />
+                    <StatCard icon={Check} label="Total Paid" value={formatCurrency(Number(stats.total_paid))} color="green" />
+                    <StatCard icon={AlertCircle} label="Total Due" value={formatCurrency(Number(stats.total_due))} color="red" />
                     <StatCard icon={Clock} label="Pending" value={stats.pending} sub="deliveries" color="amber" />
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                     <div className="lg:col-span-2 bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5">
-                        <h3 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-4">Daily Revenue (May 2026)</h3>
+                        <h3 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-4">Daily Revenue (Last 7 Days)</h3>
                         <ResponsiveContainer width="100%" height={260}>
-                            <LineChart data={DAILY_REVENUE}>
+                            <LineChart data={dailyRevenue}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                                 <XAxis dataKey="day" tick={{ fontSize: 11, fill: "#94a3b8" }} />
                                 <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} />

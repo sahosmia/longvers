@@ -6,16 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
 {
-    protected $keyType = 'string';
-    public $incrementing = false;
-
     protected $fillable = [
-        'id',
         'name',
-        'name_bn',
-        'category',
+        'category_id',
         'price',
     ];
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
 
     public function invoiceItems()
     {

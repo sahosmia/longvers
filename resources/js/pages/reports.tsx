@@ -7,27 +7,11 @@ import { type BreadcrumbItem } from '@/types';
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Reports',
-        href: '/laurnverse/reports',
+        href: '/reports',
     },
 ];
 
 const formatCurrency = (n: number) => `৳${n.toLocaleString("en-BD")}`;
-
-const monthlyData = [
-    { month: "Jan", revenue: 28000, paid: 24000, due: 4000, cost: 12000 },
-    { month: "Feb", revenue: 32000, paid: 29000, due: 3000, cost: 14000 },
-    { month: "Mar", revenue: 26000, paid: 22000, due: 4000, cost: 11000 },
-    { month: "Apr", revenue: 35000, paid: 33000, due: 2000, cost: 15000 },
-    { month: "May", revenue: 16170, paid: 14450, due: 1720, cost: 7000 },
-];
-
-const categorySplit = [
-    { name: "Gents", value: 4200, fill: "#3b82f6" },
-    { name: "Ladies", value: 5800, fill: "#ec4899" },
-    { name: "Kids", value: 2100, fill: "#f59e0b" },
-    { name: "Household", value: 2800, fill: "#10b981" },
-    { name: "Others", value: 1270, fill: "#8b5cf6" },
-];
 
 function StatCard({ icon: Icon, label, value, sub, color = "blue" }: any) {
     const colorMap: any = {
@@ -53,12 +37,18 @@ function StatCard({ icon: Icon, label, value, sub, color = "blue" }: any) {
     );
 }
 
-export default function Reports() {
-    const currentMonth = monthlyData[monthlyData.length - 1];
+interface ReportsProps {
+    monthlyData: any[];
+    categorySplit: any[];
+    totalServices: number;
+}
+
+export default function Reports({ monthlyData, categorySplit, totalServices }: ReportsProps) {
+    const currentMonth = monthlyData[monthlyData.length - 1] || { revenue: 0, paid: 0, due: 0, cost: 0 };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Laurnverse - Reports" />
+            <Head title="Reports - Laurnverse" />
             <div className="p-4 space-y-6">
                 <div>
                     <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">Reports & Analytics</h1>
@@ -66,11 +56,11 @@ export default function Reports() {
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-                    <StatCard icon={FileText} label="Total Services" value="89" color="blue" />
+                    <StatCard icon={FileText} label="Total Services" value={totalServices.toString()} color="blue" />
                     <StatCard icon={TrendingUp} label="Revenue" value={formatCurrency(currentMonth.revenue)} color="purple" />
                     <StatCard icon={Check} label="Collected" value={formatCurrency(currentMonth.paid)} color="green" />
                     <StatCard icon={AlertCircle} label="Outstanding" value={formatCurrency(currentMonth.due)} color="red" />
-                    <StatCard icon={DollarSign} label="Profit" value={formatCurrency(currentMonth.revenue - currentMonth.cost)} color="amber" sub={`Cost: ${formatCurrency(currentMonth.cost)}`} />
+                    <StatCard icon={DollarSign} label="Profit" value={formatCurrency(currentMonth.revenue - currentMonth.cost)} color="amber" sub={`Estimated Cost: ${formatCurrency(currentMonth.cost)}`} />
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -130,7 +120,7 @@ export default function Reports() {
                             <tbody>
                                 {monthlyData.map((m) => (
                                     <tr key={m.month} className="border-b border-neutral-50 dark:border-neutral-800 hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors">
-                                        <td className="px-5 py-3 font-semibold text-neutral-800 dark:text-neutral-200">{m.month} 2026</td>
+                                        <td className="px-5 py-3 font-semibold text-neutral-800 dark:text-neutral-200">{m.month}</td>
                                         <td className="px-3 py-3 text-right font-medium">{formatCurrency(m.revenue)}</td>
                                         <td className="px-3 py-3 text-right text-emerald-600">{formatCurrency(m.paid)}</td>
                                         <td className="px-3 py-3 text-right text-red-500">{formatCurrency(m.due)}</td>

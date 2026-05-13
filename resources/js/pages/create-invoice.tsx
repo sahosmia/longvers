@@ -4,11 +4,16 @@ import { Search, Package, Trash2, Printer, Calendar, CreditCard, Banknote, Smart
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 
-interface Product {
-    id: string;
+interface Category {
+    id: number;
     name: string;
-    name_bn: string;
-    category: string;
+}
+
+interface Product {
+    id: number;
+    name: string;
+    category_id: number;
+    category: Category;
     price: number;
 }
 
@@ -21,6 +26,7 @@ interface Client {
 interface CreateInvoiceProps {
     products: Product[];
     clients: Client[];
+    categories: Category[];
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -33,7 +39,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 const formatCurrency = (n: number) => `৳${n.toLocaleString("en-BD")}`;
 const generateInvoiceId = () => `INV-${Date.now().toString().slice(-8)}`;
 
-export default function CreateInvoice({ products, clients }: CreateInvoiceProps) {
+export default function CreateInvoice({ products, clients, categories }: CreateInvoiceProps) {
     const [searchTerm, setSearchTerm] = useState("");
     const [showDropdown, setShowDropdown] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState("All");
@@ -53,8 +59,8 @@ export default function CreateInvoice({ products, clients }: CreateInvoiceProps)
 
     const filtered = useMemo(() => {
         return products.filter((p) => {
-            const matchCat = selectedCategory === "All" || p.category === selectedCategory;
-            const matchSearch = searchTerm.length === 0 || p.name.toLowerCase().includes(searchTerm.toLowerCase()) || p.name_bn.includes(searchTerm);
+            const matchCat = selectedCategory === "All" || p.category?.name === selectedCategory;
+            const matchSearch = searchTerm.length === 0 || p.name.toLowerCase().includes(searchTerm.toLowerCase());
             return matchCat && matchSearch;
         });
     }, [searchTerm, selectedCategory, products]);
@@ -66,7 +72,7 @@ export default function CreateInvoice({ products, clients }: CreateInvoiceProps)
         if (existingIdx > -1) {
             newItems[existingIdx].qty += 1;
         } else {
-            newItems.push({ productId: product.id, name: product.name, namebn: product.name_bn, price: product.price, qty: 1 });
+            newItems.push({ productId: product.id, name: product.name, price: product.price, qty: 1 });
         }
 
         const newTotal = newItems.reduce((s, i) => s + i.price * i.qty, 0);
@@ -120,11 +126,11 @@ export default function CreateInvoice({ products, clients }: CreateInvoiceProps)
         post(route('invoices.store'));
     };
 
-    const categories = ["All", "Gents", "Ladies", "Kids", "Household", "Others"];
+    const categoryNames = ["All", ...categories.map(c => c.name)];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Laurnverse - Create Invoice" />
+            <Head title="Create Invoice - Laurnverse" />
             <form onSubmit={handleSubmit} className="p-4 space-y-4">
                 <div className="flex items-center justify-between">
                     <div>
@@ -144,7 +150,7 @@ export default function CreateInvoice({ products, clients }: CreateInvoiceProps)
                                 <Search className="w-4 h-4" /> Add Service / Product
                             </h3>
                             <div className="flex flex-wrap gap-1.5 mb-3">
-                                {categories.map((c) => (
+                                {categoryNames.map((c) => (
                                     <button
                                         key={c}
                                         type="button"
@@ -181,7 +187,6 @@ export default function CreateInvoice({ products, clients }: CreateInvoiceProps)
                                                 >
                                                     <div>
                                                         <span className="text-sm font-medium text-neutral-800 dark:text-neutral-200">{p.name}</span>
-                                                        <span className="text-xs text-neutral-400 ml-2">{p.name_bn}</span>
                                                     </div>
                                                     <div className="flex items-center gap-2">
                                                         <span className="text-sm font-bold text-blue-600">{formatCurrency(Number(p.price))}</span>
@@ -223,7 +228,6 @@ export default function CreateInvoice({ products, clients }: CreateInvoiceProps)
                                                     <td className="px-5 py-3 text-neutral-400 font-mono text-xs">{idx + 1}</td>
                                                     <td className="px-3 py-3">
                                                         <div className="font-medium text-neutral-800 dark:text-neutral-200">{item.name}</div>
-                                                        <div className="text-xs text-neutral-400">{item.namebn}</div>
                                                     </td>
                                                     <td className="px-3 py-3 text-center">
                                                         <div className="flex items-center justify-center gap-1">
