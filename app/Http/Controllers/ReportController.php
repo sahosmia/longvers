@@ -9,6 +9,7 @@ class ReportController extends Controller
 {
     public function index()
     {
+        // Support both MySQL and SQLite (for testing)
         $isSqlite = \DB::connection()->getDriverName() === 'sqlite';
         $dateFormat = $isSqlite ? "strftime('%m', date)" : "DATE_FORMAT(date, '%b')";
 

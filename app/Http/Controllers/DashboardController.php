@@ -19,6 +19,7 @@ class DashboardController extends Controller
             'pending' => Invoice::where('status', 'Processing')->count(),
         ];
 
+        // Support both MySQL and SQLite (for testing)
         $isSqlite = \DB::connection()->getDriverName() === 'sqlite';
         $dateFormat = $isSqlite ? "strftime('%m-%d', date)" : "DATE_FORMAT(date, '%b %d')";
 
