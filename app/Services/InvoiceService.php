@@ -12,7 +12,7 @@ class InvoiceService
     public function createInvoice(array $data)
     {
         return DB::transaction(function () use ($data) {
-            $clientId = $data['client_id'];
+            $clientId = $data['client_id'] ?? null;
 
             if (!empty($data['create_new_client'])) {
                 $client = Client::create([
@@ -42,6 +42,12 @@ class InvoiceService
                     'qty' => $item['qty'],
                     'price' => $item['price'],
                 ]);
+
+                // Update product stock
+                $product = \App\Models\Product::find($item['productId']);
+                if ($product) {
+                    $product->decrement('stock', $item['qty']);
+                }
             }
 
             // Update client stats

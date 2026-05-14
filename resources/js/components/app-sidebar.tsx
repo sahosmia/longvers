@@ -30,13 +30,30 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Products',
-        url: route('products.index'),
+        url: '#',
         icon: Package,
-    },
-    {
-        title: 'Categories',
-        url: route('categories.index'),
-        icon: Tag,
+        items: [
+            {
+                title: 'All Products',
+                url: route('products.index'),
+            },
+            {
+                title: 'Low Stock',
+                url: route('products.index', { filter: 'low_stock' }),
+            },
+            {
+                title: 'Out of Stock',
+                url: route('products.index', { filter: 'out_of_stock' }),
+            },
+            {
+                title: 'Categories',
+                url: route('categories.index'),
+            },
+            {
+                title: 'Units',
+                url: route('units.index'),
+            },
+        ],
     },
     {
         title: 'Reports',
