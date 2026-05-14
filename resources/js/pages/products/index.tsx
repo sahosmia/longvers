@@ -10,17 +10,28 @@ interface Category {
     name: string;
 }
 
+interface Unit {
+    id: number;
+    name: string;
+    short_name: string;
+}
+
 interface Product {
     id: number;
     name: string;
     category_id: number;
     category: Category;
+    unit_id?: number;
+    unit?: Unit;
     price: number;
+    stock: number;
 }
 
 interface ProductsProps {
     products: Product[];
     categories: Category[];
+    units: Unit[];
+    filter?: string;
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -32,7 +43,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const formatCurrency = (n: number) => `৳${n.toLocaleString("en-BD")}`;
 
-export default function Products({ products, categories }: ProductsProps) {
+export default function Products({ products, categories, units, filter }: ProductsProps) {
     const [search, setSearch] = useState("");
     const [showModal, setShowModal] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -40,7 +51,9 @@ export default function Products({ products, categories }: ProductsProps) {
     const { data, setData, post, put, delete: destroy, reset, errors, processing } = useForm({
         name: '',
         category_id: '',
+        unit_id: '',
         price: '',
+        stock: '0',
     });
 
     const filtered = products.filter((p) =>
@@ -58,7 +71,9 @@ export default function Products({ products, categories }: ProductsProps) {
         setData({
             name: product.name,
             category_id: product.category_id.toString(),
+            unit_id: product.unit_id?.toString() || '',
             price: product.price.toString(),
+            stock: product.stock.toString(),
         });
         setShowModal(true);
     };
@@ -85,14 +100,16 @@ export default function Products({ products, categories }: ProductsProps) {
         }
     };
 
+    const pageTitle = filter === 'low_stock' ? 'Low Stock Products' : (filter === 'out_of_stock' ? 'Out of Stock Products' : 'Products & Services');
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Products - Laurnverse" />
+            <Head title={`${pageTitle} - Laurnverse`} />
             <div className="p-4 space-y-4">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">Products & Services</h1>
-                        <p className="text-sm text-neutral-500 dark:text-neutral-400">{products.length} items in catalog</p>
+                        <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">{pageTitle}</h1>
+                        <p className="text-sm text-neutral-500 dark:text-neutral-400">{products.length} items</p>
                     </div>
                     <button
                         onClick={openCreateModal}
@@ -121,6 +138,7 @@ export default function Products({ products, categories }: ProductsProps) {
                                     <th className="text-left px-5 py-3 font-semibold">ID</th>
                                     <th className="text-left px-3 py-3 font-semibold">Name</th>
                                     <th className="text-left px-3 py-3 font-semibold">Category</th>
+                                    <th className="text-right px-3 py-3 font-semibold">Stock</th>
                                     <th className="text-right px-3 py-3 font-semibold">Price</th>
                                     <th className="text-center px-3 py-3 font-semibold">Actions</th>
                                 </tr>
@@ -133,6 +151,11 @@ export default function Products({ products, categories }: ProductsProps) {
                                         <td className="px-3 py-3">
                                             <span className="px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-[10px] font-semibold text-neutral-600 dark:text-neutral-400">
                                                 {p.category?.name}
+                                            </span>
+                                        </td>
+                                        <td className="px-3 py-3 text-right">
+                                            <span className={`font-semibold ${p.stock <= 0 ? 'text-red-500' : (p.stock <= 10 ? 'text-amber-500' : 'text-neutral-700 dark:text-neutral-300')}`}>
+                                                {p.stock} {p.unit?.short_name}
                                             </span>
                                         </td>
                                         <td className="px-3 py-3 text-right font-bold text-neutral-900 dark:text-neutral-100">{formatCurrency(Number(p.price))}</td>
@@ -181,6 +204,18 @@ export default function Products({ products, categories }: ProductsProps) {
                                         error={errors.category_id}
                                     />
                                 </div>
+                                <div className="space-y-1">
+                                    <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Unit</label>
+                                    <SearchableSelect
+                                        options={units.map(u => ({ label: u.name, value: u.id }))}
+                                        value={data.unit_id}
+                                        onChange={val => setData('unit_id', val.toString())}
+                                        placeholder="Select Unit"
+                                        error={errors.unit_id}
+                                    />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Price (৳)</label>
                                     <input
@@ -191,6 +226,17 @@ export default function Products({ products, categories }: ProductsProps) {
                                         required
                                     />
                                     {errors.price && <p className="text-xs text-red-500 mt-1">{errors.price}</p>}
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Stock</label>
+                                    <input
+                                        type="number"
+                                        value={data.stock}
+                                        onChange={e => setData('stock', e.target.value)}
+                                        className="w-full mt-1 border border-neutral-200 dark:border-neutral-800 rounded-xl px-3 py-2 text-sm bg-transparent dark:text-neutral-100"
+                                        required
+                                    />
+                                    {errors.stock && <p className="text-xs text-red-500 mt-1">{errors.stock}</p>}
                                 </div>
                             </div>
                             <div className="flex gap-2 pt-2">

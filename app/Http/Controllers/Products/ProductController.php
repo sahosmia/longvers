@@ -10,11 +10,21 @@ use Inertia\Inertia;
 
 class ProductController extends Controller
 {
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
+        $query = Product::with(['category', 'unit'])->latest();
+
+        if ($request->filter === 'low_stock') {
+            $query->where('stock', '>', 0)->where('stock', '<=', 10);
+        } elseif ($request->filter === 'out_of_stock') {
+            $query->where('stock', '<=', 0);
+        }
+
         return Inertia::render('products/index', [
-            'products' => Product::with('category')->latest()->get(),
+            'products' => $query->get(),
             'categories' => \App\Models\Category::all(),
+            'units' => \App\Models\Unit::all(),
+            'filter' => $request->filter,
         ]);
     }
 

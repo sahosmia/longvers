@@ -40,11 +40,15 @@ class DemoDataSeeder extends Seeder
         ];
 
         $productModels = [];
+        $unitIds = \App\Models\Unit::pluck('id')->toArray();
+
         foreach ($productsData as $p) {
             $productModels[] = Product::create([
                 'name' => $p['name'],
                 'category_id' => $categoryModels[$p['category']]->id,
+                'unit_id' => !empty($unitIds) ? $unitIds[array_rand($unitIds)] : null,
                 'price' => $p['price'],
+                'stock' => rand(0, 100),
             ]);
         }
 

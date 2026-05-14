@@ -19,6 +19,10 @@ interface Product {
     category_id: number;
     category: Category;
     price: number;
+    stock: number;
+    unit?: {
+        short_name: string;
+    };
 }
 
 interface Client {
@@ -197,7 +201,10 @@ export default function CreateInvoice({ products, clients, categories }: CreateI
                                                     <div>
                                                         <span className="text-sm font-medium text-neutral-800 dark:text-neutral-200">{p.name}</span>
                                                     </div>
-                                                    <div className="flex items-center gap-2">
+                                                    <div className="flex items-center gap-4">
+                                                        <span className={`text-xs font-semibold ${p.stock <= 0 ? 'text-red-500' : (p.stock <= 10 ? 'text-amber-500' : 'text-neutral-500')}`}>
+                                                            Stock: {p.stock} {p.unit?.short_name}
+                                                        </span>
                                                         <span className="text-sm font-bold text-blue-600">{formatCurrency(Number(p.price))}</span>
                                                     </div>
                                                 </button>
