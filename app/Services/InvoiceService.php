@@ -12,7 +12,7 @@ class InvoiceService
     public function createInvoice(array $data)
     {
         return DB::transaction(function () use ($data) {
-            $clientId = $data['client_id'];
+            $clientId = $data['client_id'] ?? null;
 
             if (!empty($data['create_new_client'])) {
                 $client = Client::create([

@@ -16,7 +16,7 @@ class StoreInvoiceRequest extends FormRequest
         return [
             'id' => 'required|string|unique:invoices,id',
             'date' => 'required|date',
-            'client_id' => 'required_if:create_new_client,false|nullable|exists:clients,id',
+            'client_id' => 'required_without:create_new_client|required_if:create_new_client,false|nullable|exists:clients,id',
             'create_new_client' => 'boolean',
             'new_client_name' => 'required_if:create_new_client,true|string|max:255',
             'new_client_phone' => 'required_if:create_new_client,true|string|max:255',

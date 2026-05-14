@@ -57,7 +57,7 @@ export default function CreateInvoice({ products, clients, categories }: CreateI
         new_client_phone: '',
         new_client_address: '',
         total: 0,
-        paid: '',
+        paid: 0 as string | number,
         due: 0,
         status: 'Processing',
         method: 'Cash',
