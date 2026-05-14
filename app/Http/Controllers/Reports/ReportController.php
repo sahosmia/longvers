@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Reports;
 
 use App\Http\Controllers\Controller;
 use Inertia\Inertia;
@@ -40,7 +40,7 @@ class ReportController extends Controller
             $item['fill'] = $colors[$index % count($colors)];
         }
 
-        return Inertia::render('reports', [
+        return Inertia::render('reports/index', [
             'monthlyData' => $monthlyStats,
             'categorySplit' => $categorySplit,
             'totalServices' => \App\Models\InvoiceItem::sum('qty'),

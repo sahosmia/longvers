@@ -4,7 +4,7 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, Home, FilePlus, Clock, Users, BarChart3, Package } from 'lucide-react';
+import { BookOpen, Folder, Home, FilePlus, Clock, Users, BarChart3, Package, Tag } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -34,24 +34,18 @@ const mainNavItems: NavItem[] = [
         icon: Package,
     },
     {
+        title: 'Categories',
+        url: route('categories.index'),
+        icon: Tag,
+    },
+    {
         title: 'Reports',
         url: route('reports'),
         icon: BarChart3,
     },
 ];
 
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        url: 'https://github.com/laravel/react-starter-kit',
-        icon: Folder,
-    },
-    {
-        title: 'Documentation',
-        url: 'https://laravel.com/docs/starter-kits',
-        icon: BookOpen,
-    },
-];
+
 
 export function AppSidebar() {
     return (
@@ -73,7 +67,6 @@ export function AppSidebar() {
             </SidebarContent>
 
             <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto" />
                 <NavUser />
             </SidebarFooter>
         </Sidebar>

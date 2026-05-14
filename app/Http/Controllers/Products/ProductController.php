@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Products;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreProductRequest;
-use App\Http\Requests\UpdateProductRequest;
+use App\Http\Requests\Products\StoreProductRequest;
+use App\Http\Requests\Products\UpdateProductRequest;
 use App\Models\Product;
 use Inertia\Inertia;
 
@@ -12,7 +12,7 @@ class ProductController extends Controller
 {
     public function index()
     {
-        return Inertia::render('products', [
+        return Inertia::render('products/index', [
             'products' => Product::with('category')->latest()->get(),
             'categories' => \App\Models\Category::all(),
         ]);

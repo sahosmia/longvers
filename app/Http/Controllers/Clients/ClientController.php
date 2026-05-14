@@ -1,19 +1,18 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Clients;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreClientRequest;
-use App\Http\Requests\UpdateClientRequest;
+use App\Http\Requests\Clients\StoreClientRequest;
+use App\Http\Requests\Clients\UpdateClientRequest;
 use App\Models\Client;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class ClientController extends Controller
 {
     public function index()
     {
-        return Inertia::render('clients', [
+        return Inertia::render('clients/index', [
             'clients' => Client::orderBy('created_at', 'desc')->get(),
         ]);
     }
