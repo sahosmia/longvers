@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { Printer, ArrowLeft, Download, CreditCard, Calendar, User, Package } from 'lucide-react';
+import { useEffect } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -36,6 +37,13 @@ const breadcrumbs: BreadcrumbItem[] = [
 const formatCurrency = (n: number) => `৳${n.toLocaleString("en-BD")}`;
 
 export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('print')) {
+            window.print();
+        }
+    }, []);
+
     const handlePrint = () => {
         window.print();
     };
