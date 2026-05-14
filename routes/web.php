@@ -1,10 +1,11 @@
 <?php
 
-use App\Http\Controllers\ClientController;
+use App\Http\Controllers\Clients\ClientController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\InvoiceController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\ReportController;
+use App\Http\Controllers\Invoices\InvoiceController;
+use App\Http\Controllers\Products\ProductController;
+use App\Http\Controllers\Reports\ReportController;
+use App\Http\Controllers\Categories\CategoryController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -18,12 +19,13 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('clients', ClientController::class);
     Route::resource('products', ProductController::class);
-    Route::resource('categories', \App\Http\Controllers\CategoryController::class);
+    Route::resource('categories', CategoryController::class);
 
     Route::get('/invoices', [InvoiceController::class, 'index'])->name('history');
     Route::get('/invoices/create', [InvoiceController::class, 'create'])->name('create-invoice');
     Route::post('/invoices', [InvoiceController::class, 'store'])->name('invoices.store');
     Route::get('/invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
+    Route::get('/invoices/{invoice}/print', [InvoiceController::class, 'print'])->name('invoices.print');
     Route::delete('/invoices/{invoice}', [InvoiceController::class, 'destroy'])->name('invoices.destroy');
 
     Route::get('/reports', [ReportController::class, 'index'])->name('reports');

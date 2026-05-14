@@ -45,7 +45,7 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
     }, []);
 
     const handlePrint = () => {
-        window.print();
+        window.open(route('invoices.print', invoice.id), '_blank');
     };
 
     return (
@@ -62,9 +62,11 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
                         <Button variant="outline" onClick={handlePrint}>
                             <Printer className="w-4 h-4 mr-2" /> Print
                         </Button>
-                        <Button onClick={handlePrint}>
-                            <Download className="w-4 h-4 mr-2" /> Download
-                        </Button>
+                        <a href={route('invoices.print', invoice.id)} target="_blank" rel="noopener noreferrer">
+                            <Button>
+                                <Download className="w-4 h-4 mr-2" /> Download
+                            </Button>
+                        </a>
                     </div>
                 </div>
 

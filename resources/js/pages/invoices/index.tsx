@@ -106,7 +106,7 @@ export default function InvoiceHistory({ invoices }: InvoiceHistoryProps) {
                                             <div className="flex items-center justify-center gap-1">
                                                 <Link href={route('invoices.show', inv.id)} className="p-1.5 text-neutral-400 hover:text-blue-600"><Eye className="w-4 h-4" /></Link>
                                                 <button onClick={() => handleDelete(inv.id)} className="p-1.5 text-neutral-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
-                                                <Link href={route('invoices.show', inv.id) + '?print=1'} className="p-1.5 text-neutral-400 hover:text-green-600"><Download className="w-4 h-4" /></Link>
+                                                <a href={route('invoices.print', inv.id)} target="_blank" rel="noopener noreferrer" className="p-1.5 text-neutral-400 hover:text-green-600"><Download className="w-4 h-4" /></a>
                                             </div>
                                         </td>
                                     </tr>
