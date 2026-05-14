@@ -20,7 +20,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('clients', ClientController::class);
     Route::resource('products', ProductController::class);
-    Route::resource('categories', CategoryController::class);
+    Route::resource('categories', CategoryController::class)->except(['create', 'edit']);
     Route::resource('units', UnitController::class);
 
     Route::get('/invoices', [InvoiceController::class, 'index'])->name('history');

@@ -13,26 +13,14 @@ class CategoryController extends Controller
     public function index()
     {
         return Inertia::render('categories/index', [
-            'categories' => Category::all(),
+            'categories' => Category::latest()->get(),
         ]);
-    }
-
-    public function create()
-    {
-        return Inertia::render('categories/form');
     }
 
     public function store(StoreCategoryRequest $request)
     {
         Category::create($request->validated());
         return redirect()->route('categories.index')->with('success', 'Category created successfully.');
-    }
-
-    public function edit(Category $category)
-    {
-        return Inertia::render('categories/form', [
-            'category' => $category,
-        ]);
     }
 
     public function update(UpdateCategoryRequest $request, Category $category)
