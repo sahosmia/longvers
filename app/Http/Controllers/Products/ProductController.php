@@ -12,8 +12,16 @@ class ProductController extends Controller
 {
     public function index()
     {
+        $query = Product::with('category')->latest();
+
+        if (request('filter') === 'low_stock') {
+            $query->where('stock', '>', 0)->where('stock', '<=', 10);
+        } elseif (request('filter') === 'out_of_stock') {
+            $query->where('stock', '<=', 0);
+        }
+
         return Inertia::render('products/index', [
-            'products' => Product::with('category')->latest()->get(),
+            'products' => $query->get(),
             'categories' => \App\Models\Category::all(),
         ]);
     }
