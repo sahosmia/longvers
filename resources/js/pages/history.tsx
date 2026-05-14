@@ -1,4 +1,4 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { useState } from "react";
 import { Search, Eye, Trash2, Download } from "lucide-react";
 import AppLayout from '@/layouts/app-layout';
@@ -104,9 +104,9 @@ export default function InvoiceHistory({ invoices }: InvoiceHistoryProps) {
                                         <td className="px-3 py-3 text-center"><StatusBadge status={inv.status} /></td>
                                         <td className="px-3 py-3">
                                             <div className="flex items-center justify-center gap-1">
-                                                <button className="p-1.5 text-neutral-400 hover:text-blue-600"><Eye className="w-4 h-4" /></button>
+                                                <Link href={route('invoices.show', inv.id)} className="p-1.5 text-neutral-400 hover:text-blue-600"><Eye className="w-4 h-4" /></Link>
                                                 <button onClick={() => handleDelete(inv.id)} className="p-1.5 text-neutral-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
-                                                <button className="p-1.5 text-neutral-400 hover:text-green-600"><Download className="w-4 h-4" /></button>
+                                                <Link href={route('invoices.show', inv.id)} className="p-1.5 text-neutral-400 hover:text-green-600"><Download className="w-4 h-4" /></Link>
                                             </div>
                                         </td>
                                     </tr>

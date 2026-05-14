@@ -18,10 +18,12 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('clients', ClientController::class);
     Route::resource('products', ProductController::class);
+    Route::resource('categories', \App\Http\Controllers\CategoryController::class);
 
     Route::get('/invoices', [InvoiceController::class, 'index'])->name('history');
     Route::get('/invoices/create', [InvoiceController::class, 'create'])->name('create-invoice');
     Route::post('/invoices', [InvoiceController::class, 'store'])->name('invoices.store');
+    Route::get('/invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
     Route::delete('/invoices/{invoice}', [InvoiceController::class, 'destroy'])->name('invoices.destroy');
 
     Route::get('/reports', [ReportController::class, 'index'])->name('reports');

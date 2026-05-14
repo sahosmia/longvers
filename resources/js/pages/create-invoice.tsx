@@ -1,8 +1,12 @@
 import { Head, useForm } from '@inertiajs/react';
 import { useState, useMemo } from "react";
-import { Search, Package, Trash2, Printer, Calendar, CreditCard, Banknote, Smartphone, Users } from "lucide-react";
+import { Search, Package, Trash2, Printer, Calendar, CreditCard, Users, UserPlus } from "lucide-react";
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
+import { SearchableSelect } from '@/components/ui/searchable-select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 interface Category {
     id: number;
@@ -47,7 +51,12 @@ export default function CreateInvoice({ products, clients, categories }: CreateI
     const { data, setData, post, processing, errors } = useForm({
         id: generateInvoiceId(),
         date: new Date().toISOString().split('T')[0],
-        client_id: '',
+        client_id: '' as string | number,
+        create_new_client: false,
+        new_client_name: '',
+        new_client_email: '',
+        new_client_phone: '',
+        new_client_address: '',
         total: 0,
         paid: '',
         due: 0,
@@ -127,6 +136,7 @@ export default function CreateInvoice({ products, clients, categories }: CreateI
     };
 
     const categoryNames = ["All", ...categories.map(c => c.name)];
+    const clientOptions = clients.map(c => ({ label: `${c.name} (${c.phone})`, value: c.id }));
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -253,20 +263,81 @@ export default function CreateInvoice({ products, clients, categories }: CreateI
                     </div>
 
                     <div className="space-y-4">
-                        <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5 space-y-3">
-                            <h3 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 flex items-center gap-2"><Users className="w-4 h-4" /> Client</h3>
-                            <select
-                                value={data.client_id}
-                                onChange={e => setData('client_id', e.target.value)}
-                                className="w-full border border-neutral-200 dark:border-neutral-800 rounded-xl px-3 py-2.5 text-sm bg-transparent dark:text-neutral-100"
-                                required
-                            >
-                                <option value="">Select Client</option>
-                                {clients.map(c => (
-                                    <option key={c.id} value={c.id}>{c.name} ({c.phone})</option>
-                                ))}
-                            </select>
-                            {errors.client_id && <p className="text-xs text-red-500">{errors.client_id}</p>}
+                        <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5 space-y-4">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 flex items-center gap-2">
+                                    <Users className="w-4 h-4" /> Client
+                                </h3>
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                        id="create_new_client"
+                                        checked={data.create_new_client}
+                                        onCheckedChange={(checked) => setData('create_new_client', !!checked)}
+                                    />
+                                    <Label htmlFor="create_new_client" className="text-xs font-medium cursor-pointer">New Client</Label>
+                                </div>
+                            </div>
+
+                            {!data.create_new_client ? (
+                                <div>
+                                    <SearchableSelect
+                                        options={clientOptions}
+                                        value={data.client_id}
+                                        onChange={(val) => setData('client_id', val)}
+                                        placeholder="Select Client"
+                                        error={errors.client_id}
+                                    />
+                                </div>
+                            ) : (
+                                <div className="space-y-3 p-3 rounded-xl border border-dashed border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-800/20">
+                                    <div className="flex items-center gap-2 text-xs font-bold text-blue-600 dark:text-blue-400 mb-1">
+                                        <UserPlus className="w-3 h-3" /> Inline Client Creation
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="new_client_name" className="text-[10px] uppercase tracking-wider text-neutral-500">Name</Label>
+                                        <Input
+                                            id="new_client_name"
+                                            value={data.new_client_name}
+                                            onChange={e => setData('new_client_name', e.target.value)}
+                                            placeholder="Client Name"
+                                            className="h-9 text-xs"
+                                        />
+                                        {errors.new_client_name && <p className="text-[10px] text-red-500">{errors.new_client_name}</p>}
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="new_client_email" className="text-[10px] uppercase tracking-wider text-neutral-500">Email</Label>
+                                        <Input
+                                            id="new_client_email"
+                                            value={data.new_client_email}
+                                            onChange={e => setData('new_client_email', e.target.value)}
+                                            placeholder="Email Address"
+                                            className="h-9 text-xs"
+                                        />
+                                        {errors.new_client_email && <p className="text-[10px] text-red-500">{errors.new_client_email}</p>}
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="new_client_phone" className="text-[10px] uppercase tracking-wider text-neutral-500">Phone</Label>
+                                        <Input
+                                            id="new_client_phone"
+                                            value={data.new_client_phone}
+                                            onChange={e => setData('new_client_phone', e.target.value)}
+                                            placeholder="Phone Number"
+                                            className="h-9 text-xs"
+                                        />
+                                        {errors.new_client_phone && <p className="text-[10px] text-red-500">{errors.new_client_phone}</p>}
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="new_client_address" className="text-[10px] uppercase tracking-wider text-neutral-500">Address (Optional)</Label>
+                                        <Input
+                                            id="new_client_address"
+                                            value={data.new_client_address}
+                                            onChange={e => setData('new_client_address', e.target.value)}
+                                            placeholder="Address"
+                                            className="h-9 text-xs"
+                                        />
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5 space-y-3">

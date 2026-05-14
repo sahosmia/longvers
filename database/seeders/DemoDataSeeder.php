@@ -17,7 +17,11 @@ class DemoDataSeeder extends Seeder
         $categories = ['Gents', 'Ladies', 'Kids', 'Household', 'Others'];
         $categoryModels = [];
         foreach ($categories as $cat) {
-            $categoryModels[$cat] = Category::create(['name' => $cat]);
+            $categoryModels[$cat] = Category::create([
+                'name' => $cat,
+                'slug' => strtolower($cat),
+                'description' => $cat . ' category',
+            ]);
         }
 
         $productsData = [

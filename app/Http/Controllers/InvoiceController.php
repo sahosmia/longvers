@@ -42,6 +42,13 @@ class InvoiceController extends Controller
         return redirect()->route('history')->with('success', 'Invoice created successfully.');
     }
 
+    public function show(Invoice $invoice)
+    {
+        return Inertia::render('invoice-detail', [
+            'invoice' => $invoice->load(['client', 'items.product']),
+        ]);
+    }
+
     public function destroy(Invoice $invoice)
     {
         $invoice->delete();

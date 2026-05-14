@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Search, Plus, Trash2, Edit3, X } from "lucide-react";
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 
 interface Category {
     id: number;
@@ -170,20 +171,15 @@ export default function Products({ products, categories }: ProductsProps) {
                                 {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
                             </div>
                             <div className="grid grid-cols-2 gap-4">
-                                <div>
+                                <div className="space-y-1">
                                     <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Category</label>
-                                    <select
+                                    <SearchableSelect
+                                        options={categories.map(c => ({ label: c.name, value: c.id }))}
                                         value={data.category_id}
-                                        onChange={e => setData('category_id', e.target.value)}
-                                        className="w-full mt-1 border border-neutral-200 dark:border-neutral-800 rounded-xl px-3 py-2 text-sm bg-transparent dark:text-neutral-100"
-                                        required
-                                    >
-                                        <option value="">Select Category</option>
-                                        {categories.map(c => (
-                                            <option key={c.id} value={c.id}>{c.name}</option>
-                                        ))}
-                                    </select>
-                                    {errors.category_id && <p className="text-xs text-red-500 mt-1">{errors.category_id}</p>}
+                                        onChange={val => setData('category_id', val.toString())}
+                                        placeholder="Select Category"
+                                        error={errors.category_id}
+                                    />
                                 </div>
                                 <div>
                                     <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Price (৳)</label>
