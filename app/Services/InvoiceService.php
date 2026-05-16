@@ -24,7 +24,8 @@ class InvoiceService
             }
 
             $invoice = Invoice::create([
-                'id' => $data['id'],
+                'invoice_uuid' => $data['invoice_uuid'],
+                'outlet_id' => $data['outlet_id'],
                 'date' => $data['date'],
                 'client_id' => $clientId,
                 'total' => $data['total'],
@@ -55,6 +56,69 @@ class InvoiceService
             $client->increment('total_orders');
             $client->increment('total_paid', $data['paid']);
             $client->increment('total_due', $data['due']);
+
+            return $invoice;
+        });
+    }
+
+    public function updateInvoice(Invoice $invoice, array $data)
+    {
+        return DB::transaction(function () use ($invoice, $data) {
+            // Restore product stock before update
+            foreach ($invoice->items as $oldItem) {
+                $product = \App\Models\Product::find($oldItem->product_id);
+                if ($product) {
+                    $product->increment('stock', $oldItem->qty);
+                }
+            }
+
+            // Revert client stats
+            $oldClient = Client::find($invoice->client_id);
+            if ($oldClient) {
+                $oldClient->decrement('total_orders');
+                $oldClient->decrement('total_paid', $invoice->paid);
+                $oldClient->decrement('total_due', $invoice->due);
+            }
+
+            // Update Invoice
+            $invoice->update([
+                'invoice_uuid' => $data['invoice_uuid'],
+                'outlet_id' => $data['outlet_id'],
+                'date' => $data['date'],
+                'client_id' => $data['client_id'],
+                'total' => $data['total'],
+                'paid' => $data['paid'],
+                'due' => $data['due'],
+                'status' => $data['status'],
+                'method' => $data['method'],
+                'remarks' => $data['remarks'] ?? null,
+            ]);
+
+            // Delete old items
+            $invoice->items()->delete();
+
+            // Create new items and update stock
+            foreach ($data['items'] as $item) {
+                InvoiceItem::create([
+                    'invoice_id' => $invoice->id,
+                    'product_id' => $item['productId'],
+                    'qty' => $item['qty'],
+                    'price' => $item['price'],
+                ]);
+
+                $product = \App\Models\Product::find($item['productId']);
+                if ($product) {
+                    $product->decrement('stock', $item['qty']);
+                }
+            }
+
+            // Update client stats again
+            $newClient = Client::find($data['client_id']);
+            if ($newClient) {
+                $newClient->increment('total_orders');
+                $newClient->increment('total_paid', $data['paid']);
+                $newClient->increment('total_due', $data['due']);
+            }
 
             return $invoice;
         });

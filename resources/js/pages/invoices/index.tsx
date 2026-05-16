@@ -1,11 +1,12 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from "react";
-import { Search, Eye, Trash2, Download } from "lucide-react";
+import { Plus, Search, Eye, Trash2, Printer, Edit } from "lucide-react";
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 
 interface Invoice {
-    id: string;
+    id: number;
+    invoice_uuid: string;
     date: string;
     client: { name: string };
     total: number;
@@ -44,10 +45,10 @@ export default function InvoiceHistory({ invoices }: InvoiceHistoryProps) {
     const [search, setSearch] = useState("");
 
     const filtered = invoices.filter((inv) =>
-        inv.client.name.toLowerCase().includes(search.toLowerCase()) || inv.id.toLowerCase().includes(search.toLowerCase())
+        inv.client.name.toLowerCase().includes(search.toLowerCase()) || inv.invoice_uuid.toLowerCase().includes(search.toLowerCase())
     );
 
-    const handleDelete = (id: string) => {
+    const handleDelete = (id: number) => {
         if (confirm('Are you sure you want to delete this invoice?')) {
             router.delete(route('invoices.destroy', id));
         }
@@ -57,9 +58,17 @@ export default function InvoiceHistory({ invoices }: InvoiceHistoryProps) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Laurnverse - History" />
             <div className="p-4 space-y-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">Invoice History</h1>
-                    <p className="text-sm text-neutral-500 dark:text-neutral-400">All invoices at a glance</p>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">Invoice History</h1>
+                        <p className="text-sm text-neutral-500 dark:text-neutral-400">All invoices at a glance</p>
+                    </div>
+                    <Link
+                        href={route('create-invoice')}
+                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
+                    >
+                        <Plus className="w-4 h-4" /> Create Invoice
+                    </Link>
                 </div>
 
                 <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4">
@@ -80,7 +89,7 @@ export default function InvoiceHistory({ invoices }: InvoiceHistoryProps) {
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="bg-neutral-50 dark:bg-neutral-800/50 text-neutral-500 text-xs uppercase tracking-wider">
-                                    <th className="text-left px-5 py-3 font-semibold">Invoice</th>
+                                    <th className="text-left px-5 py-3 font-semibold">Invoice UUID</th>
                                     <th className="text-left px-3 py-3 font-semibold">Date</th>
                                     <th className="text-left px-3 py-3 font-semibold">Client</th>
                                     <th className="text-right px-3 py-3 font-semibold">Total</th>
@@ -93,7 +102,7 @@ export default function InvoiceHistory({ invoices }: InvoiceHistoryProps) {
                             <tbody>
                                 {filtered.map((inv) => (
                                     <tr key={inv.id} className="border-b border-neutral-50 dark:border-neutral-800 hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors">
-                                        <td className="px-5 py-3 font-mono text-xs font-semibold text-blue-600">{inv.id}</td>
+                                        <td className="px-5 py-3 font-mono text-xs font-semibold text-blue-600">{inv.invoice_uuid}</td>
                                         <td className="px-3 py-3 text-neutral-600 dark:text-neutral-400">{inv.date}</td>
                                         <td className="px-3 py-3 font-medium text-neutral-800 dark:text-neutral-200">{inv.client.name}</td>
                                         <td className="px-3 py-3 text-right font-semibold text-neutral-900 dark:text-neutral-100">{formatCurrency(Number(inv.total))}</td>
@@ -105,8 +114,9 @@ export default function InvoiceHistory({ invoices }: InvoiceHistoryProps) {
                                         <td className="px-3 py-3">
                                             <div className="flex items-center justify-center gap-1">
                                                 <Link href={route('invoices.show', inv.id)} className="p-1.5 text-neutral-400 hover:text-blue-600"><Eye className="w-4 h-4" /></Link>
+                                                <Link href={route('invoices.edit', inv.id)} className="p-1.5 text-neutral-400 hover:text-amber-500"><Edit className="w-4 h-4" /></Link>
+                                                <Link href={route('invoices.print', inv.id)} className="p-1.5 text-neutral-400 hover:text-emerald-500"><Printer className="w-4 h-4" /></Link>
                                                 <button onClick={() => handleDelete(inv.id)} className="p-1.5 text-neutral-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
-                                                <a href={route('invoices.print', inv.id)} target="_blank" rel="noopener noreferrer" className="p-1.5 text-neutral-400 hover:text-green-600"><Download className="w-4 h-4" /></a>
                                             </div>
                                         </td>
                                     </tr>

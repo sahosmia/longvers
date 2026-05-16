@@ -4,9 +4,11 @@ use App\Models\User;
 use App\Models\Client;
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\Outlet;
 
 test('invoice can be stored with existing client', function () {
     $user = User::factory()->create();
+    $outlet = Outlet::create(['name' => 'Main Outlet']);
     $category = Category::create(['name' => 'Test Category', 'slug' => 'test-category']);
     $product = Product::create([
         'name' => 'Test Product',
@@ -21,7 +23,8 @@ test('invoice can be stored with existing client', function () {
     ]);
 
     $data = [
-        'id' => 'INV-' . time(),
+        'invoice_uuid' => 'INV-' . time(),
+        'outlet_id' => $outlet->id,
         'date' => now()->format('Y-m-d'),
         'client_id' => $client->id,
         'create_new_client' => false,
@@ -47,9 +50,11 @@ test('invoice can be stored with existing client', function () {
 
 test('invoice cannot be stored with empty client id when create_new_client is false', function () {
     $user = User::factory()->create();
+    $outlet = Outlet::create(['name' => 'Main Outlet']);
 
     $data = [
-        'id' => 'INV-' . time(),
+        'invoice_uuid' => 'INV-' . time(),
+        'outlet_id' => $outlet->id,
         'date' => now()->format('Y-m-d'),
         'client_id' => '',
         'create_new_client' => false,
@@ -70,6 +75,7 @@ test('invoice cannot be stored with empty client id when create_new_client is fa
 
 test('invoice can be stored with new client', function () {
     $user = User::factory()->create();
+    $outlet = Outlet::create(['name' => 'Main Outlet']);
     $category = Category::create(['name' => 'Test Category', 'slug' => 'test-category']);
     $product = Product::create([
         'name' => 'Test Product',
@@ -79,7 +85,8 @@ test('invoice can be stored with new client', function () {
     ]);
 
     $data = [
-        'id' => 'INV-' . (time() + 1),
+        'invoice_uuid' => 'INV-' . (time() + 1),
+        'outlet_id' => $outlet->id,
         'date' => now()->format('Y-m-d'),
         'client_id' => '',
         'create_new_client' => true,

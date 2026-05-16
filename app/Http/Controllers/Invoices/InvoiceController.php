@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Invoices;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Invoices\StoreInvoiceRequest;
+use App\Http\Requests\Invoices\UpdateInvoiceRequest;
 use App\Models\Invoice;
+use App\Models\Outlet;
 use App\Models\Product;
 use App\Models\Client;
 use App\Services\InvoiceService;
@@ -32,6 +34,7 @@ class InvoiceController extends Controller
             'products' => Product::with(['category', 'unit'])->get(),
             'clients' => Client::all(),
             'categories' => \App\Models\Category::all(),
+            'outlets' => Outlet::all(),
         ]);
     }
 
@@ -39,6 +42,23 @@ class InvoiceController extends Controller
     {
         $this->invoiceService->createInvoice($request->validated());
         return redirect()->route('history')->with('success', 'Invoice created successfully.');
+    }
+
+    public function edit(Invoice $invoice)
+    {
+        return Inertia::render('invoices/edit', [
+            'invoice' => $invoice->load(['items.product']),
+            'products' => Product::with(['category', 'unit'])->get(),
+            'clients' => Client::all(),
+            'categories' => \App\Models\Category::all(),
+            'outlets' => Outlet::all(),
+        ]);
+    }
+
+    public function update(UpdateInvoiceRequest $request, Invoice $invoice)
+    {
+        $this->invoiceService->updateInvoice($invoice, $request->validated());
+        return redirect()->route('history')->with('success', 'Invoice updated successfully.');
     }
 
     public function show(Invoice $invoice)
