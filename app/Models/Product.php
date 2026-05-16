@@ -10,9 +10,17 @@ class Product extends Model
         'name',
         'category_id',
         'unit_id',
+        'image',
         'price',
         'stock',
     ];
+
+    protected $appends = ['image_url'];
+
+    public function getImageUrlAttribute()
+    {
+        return $this->image ? asset('storage/' . $this->image) : null;
+    }
 
     public function category()
     {

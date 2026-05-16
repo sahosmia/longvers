@@ -23,6 +23,8 @@ interface Product {
     category: Category;
     unit_id?: number;
     unit?: Unit;
+    image: string | null;
+    image_url: string | null;
     price: number;
     stock: number;
 }
@@ -49,9 +51,11 @@ export default function Products({ products, categories, filter, units }: Produc
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
     const { data, setData, post, put, delete: destroy, reset, errors, processing } = useForm({
+        _method: 'POST' as 'POST' | 'PUT',
         name: '',
         category_id: '',
         unit_id: '',
+        image: null as File | null,
         price: '',
         stock: '0',
     });
@@ -63,15 +67,18 @@ export default function Products({ products, categories, filter, units }: Produc
     const openCreateModal = () => {
         setEditingProduct(null);
         reset();
+        setData('_method', 'POST');
         setShowModal(true);
     };
 
     const openEditModal = (product: Product) => {
         setEditingProduct(product);
         setData({
+            _method: 'PUT',
             name: product.name,
             category_id: product.category_id.toString(),
             unit_id: product.unit_id?.toString() || '',
+            image: null,
             price: product.price.toString(),
             stock: product.stock.toString(),
         });
@@ -81,7 +88,9 @@ export default function Products({ products, categories, filter, units }: Produc
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (editingProduct) {
-            put(route('products.update', editingProduct.id), {
+            // Using post with _method: 'PUT' for file uploads on update
+            post(route('products.update', editingProduct.id), {
+                forceFormData: true,
                 onSuccess: () => setShowModal(false),
             });
         } else {
@@ -136,7 +145,7 @@ export default function Products({ products, categories, filter, units }: Produc
                             <thead>
                                 <tr className="bg-neutral-50 dark:bg-neutral-800/50 text-neutral-500 text-xs uppercase tracking-wider">
                                     <th className="text-left px-5 py-3 font-semibold">ID</th>
-                                    <th className="text-left px-3 py-3 font-semibold">Name</th>
+                                    <th className="text-left px-3 py-3 font-semibold">Product</th>
                                     <th className="text-left px-3 py-3 font-semibold">Category</th>
                                     <th className="text-right px-3 py-3 font-semibold">Stock</th>
                                     <th className="text-right px-3 py-3 font-semibold">Price</th>
@@ -147,7 +156,20 @@ export default function Products({ products, categories, filter, units }: Produc
                                 {filtered.map((p) => (
                                     <tr key={p.id} className="border-b border-neutral-50 dark:border-neutral-800 hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors">
                                         <td className="px-5 py-3 font-mono text-xs text-neutral-500">{p.id}</td>
-                                        <td className="px-3 py-3 font-medium text-neutral-800 dark:text-neutral-200">{p.name}</td>
+                                        <td className="px-3 py-3">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex-shrink-0 overflow-hidden border border-neutral-200 dark:border-neutral-800">
+                                                    {p.image_url ? (
+                                                        <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center text-neutral-400 font-bold text-xs uppercase">
+                                                            {p.name.charAt(0)}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <span className="font-medium text-neutral-800 dark:text-neutral-200">{p.name}</span>
+                                            </div>
+                                        </td>
                                         <td className="px-3 py-3">
                                             <span className="px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-[10px] font-semibold text-neutral-600 dark:text-neutral-400">
                                                 {p.category?.name}
@@ -182,6 +204,29 @@ export default function Products({ products, categories, filter, units }: Produc
                             <button onClick={() => setShowModal(false)} className="p-1 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg"><X className="w-5 h-5 text-gray-400" /></button>
                         </div>
                         <form onSubmit={handleSubmit} className="space-y-4">
+                            <div>
+                                <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Product Image</label>
+                                <div className="mt-1 flex items-center gap-4">
+                                    <div className="w-16 h-16 rounded-xl bg-neutral-100 dark:bg-neutral-800 flex-shrink-0 overflow-hidden border border-neutral-200 dark:border-neutral-800">
+                                        {data.image ? (
+                                            <img src={URL.createObjectURL(data.image)} className="w-full h-full object-cover" />
+                                        ) : (editingProduct?.image_url ? (
+                                            <img src={editingProduct.image_url} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-neutral-400">
+                                                <Plus className="w-6 h-6" />
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <input
+                                        type="file"
+                                        onChange={e => setData('image', e.target.files?.[0] || null)}
+                                        className="text-xs text-neutral-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-neutral-800 dark:file:text-neutral-300"
+                                        accept="image/*"
+                                    />
+                                </div>
+                                {errors.image && <p className="text-xs text-red-500 mt-1">{errors.image}</p>}
+                            </div>
                             <div>
                                 <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Product Name</label>
                                 <input
