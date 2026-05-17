@@ -2,10 +2,14 @@
 
 namespace App\Http\Requests\Invoices;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreInvoiceRequest extends FormRequest
+class UpdateInvoiceRequest extends FormRequest
 {
+    /**
+     * Determine if the user is authorized to make this request.
+     */
     public function authorize(): bool
     {
         return true;
@@ -14,14 +18,10 @@ class StoreInvoiceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'invoice_uuid' => 'required|string|unique:invoices,invoice_uuid',
+            'invoice_uuid' => 'required|string|unique:invoices,invoice_uuid,' . $this->route('invoice')->id,
             'outlet_id' => 'required|exists:outlets,id',
             'date' => 'required|date',
-            'client_id' => 'required_without:create_new_client|required_if:create_new_client,false|nullable|exists:clients,id',
-            'create_new_client' => 'boolean',
-            'new_client_name' => 'required_if:create_new_client,true|nullable|string|max:255',
-            'new_client_phone' => 'required_if:create_new_client,true|nullable|string|max:255',
-            'new_client_address' => 'nullable|string|max:255',
+            'client_id' => 'required|exists:clients,id',
             'total' => 'required|numeric|min:0',
             'paid' => 'required|numeric|min:0',
             'due' => 'required|numeric',

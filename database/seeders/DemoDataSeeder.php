@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Client;
 use App\Models\Invoice;
+use App\Models\Outlet;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\InvoiceItem;
@@ -14,6 +15,8 @@ class DemoDataSeeder extends Seeder
 {
     public function run(): void
     {
+        $outlet = Outlet::create(['name' => 'Main Outlet', 'address' => 'Dhaka']);
+
         $categories = ['Gents', 'Ladies', 'Kids', 'Household', 'Others'];
         $categoryModels = [];
         foreach ($categories as $cat) {
@@ -91,7 +94,8 @@ class DemoDataSeeder extends Seeder
                 $due = $total - $paid;
 
                 $invoice = Invoice::create([
-                    'id' => $invoiceId,
+                    'invoice_uuid' => $invoiceId,
+                    'outlet_id' => $outlet->id,
                     'date' => date('Y-m-d', strtotime("-" . rand(0, 60) . " days")),
                     'client_id' => $client->id,
                     'total' => $total,

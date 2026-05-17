@@ -6,11 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Invoice extends Model
 {
-    protected $keyType = 'string';
-    public $incrementing = false;
-
     protected $fillable = [
-        'id',
+        'invoice_uuid',
+        'outlet_id',
         'date',
         'client_id',
         'total',
@@ -19,7 +17,14 @@ class Invoice extends Model
         'status',
         'method',
         'remarks',
+        'discount_type',
+        'discount_amount',
     ];
+
+    public function outlet()
+    {
+        return $this->belongsTo(Outlet::class);
+    }
 
     public function client()
     {
