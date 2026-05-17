@@ -8,6 +8,7 @@ use App\Http\Controllers\Reports\ReportController;
 use App\Http\Controllers\Categories\CategoryController;
 use App\Http\Controllers\Outlets\OutletController;
 use App\Http\Controllers\UnitController;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -41,6 +42,12 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/reports', [ReportController::class, 'index'])->name('reports');
 });
+
+
+Route::get('/run-command/{command}', function ($command) {
+    Artisan::call($command);
+    return Artisan::output();
+})->name('run-command.dynamic');
 
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';

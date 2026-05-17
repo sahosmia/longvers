@@ -3,7 +3,10 @@ import { useEffect } from 'react';
 
 interface InvoiceItem {
     id: number;
-    product: { name: string };
+    product: {
+        name: string;
+        image_url?: string | null;
+    };
     qty: number;
     price: number;
 }
@@ -83,7 +86,20 @@ export default function Print({ invoice }: PrintProps) {
                         <tbody className="divide-y divide-neutral-100">
                             {invoice.items.map((item) => (
                                 <tr key={item.id}>
-                                    <td className="py-5 font-bold text-lg text-neutral-800">{item.product.name}</td>
+                                    <td className="py-5">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-16 h-16 rounded-xl bg-neutral-100 flex-shrink-0 overflow-hidden border border-neutral-200">
+                                                {item.product.image_url ? (
+                                                    <img src={item.product.image_url} alt={item.product.name} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-neutral-400 font-black text-xl uppercase">
+                                                        {item.product.name.charAt(0)}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <span className="font-bold text-xl text-neutral-800">{item.product.name}</span>
+                                        </div>
+                                    </td>
                                     <td className="py-5 text-center text-lg">{item.qty}</td>
                                     <td className="py-5 text-right text-lg">{formatCurrency(Number(item.price))}</td>
                                     <td className="py-5 text-right font-black text-lg">{formatCurrency(Number(item.price) * item.qty)}</td>

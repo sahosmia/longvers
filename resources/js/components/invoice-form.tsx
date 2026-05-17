@@ -12,6 +12,7 @@ export interface InvoiceItem {
     name: string;
     price: number;
     qty: number;
+    imageUrl?: string | null;
 }
 
 export interface Invoice {
@@ -34,6 +35,7 @@ export interface Invoice {
         price: number;
         product?: {
             name: string;
+            image_url?: string | null;
         }
     }[];
 }
@@ -76,7 +78,8 @@ export default function InvoiceForm({ invoice, products, clients, categories, ou
             productId: item.product_id,
             name: item.product?.name || 'Unknown Product',
             price: Number(item.price),
-            qty: item.qty
+            qty: item.qty,
+            imageUrl: item.product?.image_url || null
         })) || [] as InvoiceItem[],
     });
 
@@ -113,7 +116,13 @@ export default function InvoiceForm({ invoice, products, clients, categories, ou
             newItems[existingIdx].price = price; // Update price in case outlet changed
 
         } else {
-            newItems.push({ productId: product.id, name: product.name, price: price, qty: 1 });
+            newItems.push({
+                productId: product.id,
+                name: product.name,
+                price: price,
+                qty: 1,
+                imageUrl: product.image_url
+            });
         }
 
 
@@ -270,7 +279,16 @@ export default function InvoiceForm({ invoice, products, clients, categories, ou
                                                 onClick={() => addItem(p)}
                                                 className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-left border-b border-neutral-50 dark:border-neutral-800 last:border-0"
                                             >
-                                                <div>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex-shrink-0 overflow-hidden border border-neutral-200 dark:border-neutral-800">
+                                                        {p.image_url ? (
+                                                            <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center text-neutral-400 font-bold text-xs uppercase">
+                                                                {p.name.charAt(0)}
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                     <span className="text-sm font-medium text-neutral-800 dark:text-neutral-200">{p.name}</span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
@@ -314,7 +332,18 @@ export default function InvoiceForm({ invoice, products, clients, categories, ou
                                             <tr key={idx} className="border-b border-neutral-50 dark:border-neutral-800 hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors">
                                                 <td className="px-5 py-3 text-neutral-400 font-mono text-xs">{idx + 1}</td>
                                                 <td className="px-3 py-3">
-                                                    <div className="font-medium text-neutral-800 dark:text-neutral-200">{item.name}</div>
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex-shrink-0 overflow-hidden border border-neutral-200 dark:border-neutral-800">
+                                                            {item.imageUrl ? (
+                                                                <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                <div className="w-full h-full flex items-center justify-center text-neutral-400 font-bold text-xs uppercase">
+                                                                    {item.name.charAt(0)}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div className="font-medium text-neutral-800 dark:text-neutral-200">{item.name}</div>
+                                                    </div>
                                                 </td>
                                                 <td className="px-3 py-3 text-center">
                                                     <div className="flex items-center justify-center gap-1">
