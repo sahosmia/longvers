@@ -73,6 +73,29 @@
         .items-table td {
             padding: 12px 8px;
             border-bottom: 1px solid #f3f4f6;
+            vertical-align: middle;
+        }
+
+        .product-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            object-fit: cover;
+            margin-right: 10px;
+        }
+
+        .product-placeholder {
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            background: #f3f4f6;
+            color: #9ca3af;
+            text-align: center;
+            line-height: 40px;
+            font-weight: bold;
+            display: inline-block;
+            margin-right: 10px;
+            text-transform: uppercase;
         }
 
         .text-right {
@@ -169,7 +192,16 @@
                         $subtotal += $itemAmount;
                     @endphp
                     <tr>
-                        <td>{{ $item->product->name }}</td>
+                        <td>
+                            @if ($item->product && $item->product->image)
+                                <img src="{{ public_path('storage/' . $item->product->image) }}" class="product-image" align="left">
+                            @elseif ($item->product)
+                                <div class="product-placeholder" style="float: left;">{{ substr($item->product->name, 0, 1) }}</div>
+                            @else
+                                <div class="product-placeholder" style="float: left;">?</div>
+                            @endif
+                            <div style="padding-top: 10px;">{{ $item->product->name ?? 'Unknown Product' }}</div>
+                        </td>
                         <td class="text-center">{{ $item->qty }}</td>
                         <td class="text-right">{{ number_format($item->price, 2) }}</td>
                         <td class="text-right">{{ number_format($itemAmount, 2) }}</td>

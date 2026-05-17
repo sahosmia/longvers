@@ -7,7 +7,10 @@ import { Button } from '@/components/ui/button';
 
 interface InvoiceItem {
     id: number;
-    product: { name: string };
+    product: {
+        name: string;
+        image_url?: string | null;
+    };
     qty: number;
     price: number;
 }
@@ -124,7 +127,20 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
                             <tbody className="divide-y divide-neutral-50 dark:divide-neutral-800">
                                 {invoice.items.map((item) => (
                                     <tr key={item.id}>
-                                        <td className="py-4 font-medium">{item.product.name}</td>
+                                        <td className="py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex-shrink-0 overflow-hidden border border-neutral-200 dark:border-neutral-800">
+                                                    {item.product.image_url ? (
+                                                        <img src={item.product.image_url} alt={item.product.name} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center text-neutral-400 font-bold text-xs uppercase">
+                                                            {item.product.name.charAt(0)}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <span className="font-medium">{item.product.name}</span>
+                                            </div>
+                                        </td>
                                         <td className="py-4 text-center">{item.qty}</td>
                                         <td className="py-4 text-right">{formatCurrency(Number(item.price))}</td>
                                         <td className="py-4 text-right font-bold">{formatCurrency(Number(item.price) * item.qty)}</td>
