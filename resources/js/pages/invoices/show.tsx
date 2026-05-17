@@ -22,6 +22,8 @@ interface Invoice {
     status: string;
     method: string;
     remarks: string | null;
+    discount_type: string;
+    discount_amount: number;
     items: InvoiceItem[];
 }
 
@@ -136,7 +138,11 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
                         <div className="w-64 space-y-3">
                             <div className="flex justify-between text-sm">
                                 <span className="text-neutral-500">Subtotal</span>
-                                <span className="font-medium">{formatCurrency(Number(invoice.total))}</span>
+                                <span className="font-medium">{formatCurrency(invoice.items.reduce((s, i) => s + Number(i.price) * i.qty, 0))}</span>
+                            </div>
+                            <div className="flex justify-between text-sm text-amber-600">
+                                <span>Discount ({invoice.discount_type})</span>
+                                <span>{invoice.discount_type === 'Percentage' ? `${invoice.discount_amount}%` : formatCurrency(Number(invoice.discount_amount))}</span>
                             </div>
                             <div className="flex justify-between text-sm text-emerald-600 font-medium">
                                 <span>Paid</span>

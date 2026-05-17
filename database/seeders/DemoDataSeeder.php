@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Client;
 use App\Models\Invoice;
+use App\Models\Outlet;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\InvoiceItem;
@@ -14,6 +15,8 @@ class DemoDataSeeder extends Seeder
 {
     public function run(): void
     {
+        $outlet = Outlet::create(['name' => 'Main Outlet', 'address' => 'Dhaka']);
+
         $categories = ['Gents', 'Ladies', 'Kids', 'Household', 'Others'];
         $categoryModels = [];
         foreach ($categories as $cat) {
@@ -25,18 +28,18 @@ class DemoDataSeeder extends Seeder
         }
 
         $productsData = [
-            ['name' => 'Cotton Shirt', 'category' => 'Gents', 'price' => 25, 'stock' => 100],
-            ['name' => 'Jeans Pant', 'category' => 'Gents', 'price' => 35, 'stock' => 80],
-            ['name' => 'Silk Panjabi', 'category' => 'Gents', 'price' => 50, 'stock' => 60],
-            ['name' => 'Salwar Kameez', 'category' => 'Ladies', 'price' => 45, 'stock' => 90],
-            ['name' => 'Silk Saree', 'category' => 'Ladies', 'price' => 120, 'stock' => 40],
-            ['name' => 'Chiffon Orna', 'category' => 'Ladies', 'price' => 15, 'stock' => 120],
-            ['name' => 'Kids T-Shirt', 'category' => 'Kids', 'price' => 12, 'stock' => 2],
-            ['name' => 'Kids Frock', 'category' => 'Kids', 'price' => 20, 'stock' => 100],
-            ['name' => 'Bed Sheet', 'category' => 'Household', 'price' => 40, 'stock' => 0],
-            ['name' => 'Curtain Pair', 'category' => 'Household', 'price' => 60, 'stock' => 60],
-            ['name' => 'Blanket Wash', 'category' => 'Household', 'price' => 150, 'stock' => 30],
-            ['name' => 'Backpack', 'category' => 'Others', 'price' => 80, 'stock' => 50],
+            ['name' => 'Cotton Shirt', 'category' => 'Gents', 'price' => 25],
+            ['name' => 'Jeans Pant', 'category' => 'Gents', 'price' => 35],
+            ['name' => 'Silk Panjabi', 'category' => 'Gents', 'price' => 50],
+            ['name' => 'Salwar Kameez', 'category' => 'Ladies', 'price' => 45],
+            ['name' => 'Silk Saree', 'category' => 'Ladies', 'price' => 120],
+            ['name' => 'Chiffon Orna', 'category' => 'Ladies', 'price' => 15],
+            ['name' => 'Kids T-Shirt', 'category' => 'Kids', 'price' => 12],
+            ['name' => 'Kids Frock', 'category' => 'Kids', 'price' => 20],
+            ['name' => 'Bed Sheet', 'category' => 'Household', 'price' => 40],
+            ['name' => 'Curtain Pair', 'category' => 'Household', 'price' => 60],
+            ['name' => 'Blanket Wash', 'category' => 'Household', 'price' => 150],
+            ['name' => 'Backpack', 'category' => 'Others', 'price' => 80],
         ];
 
         $productModels = [];
@@ -45,7 +48,6 @@ class DemoDataSeeder extends Seeder
                 'name' => $p['name'],
                 'category_id' => $categoryModels[$p['category']]->id,
                 'price' => $p['price'],
-                'stock' => $p['stock'],
             ]);
         }
 
@@ -91,7 +93,8 @@ class DemoDataSeeder extends Seeder
                 $due = $total - $paid;
 
                 $invoice = Invoice::create([
-                    'id' => $invoiceId,
+                    'invoice_uuid' => $invoiceId,
+                    'outlet_id' => $outlet->id,
                     'date' => date('Y-m-d', strtotime("-" . rand(0, 60) . " days")),
                     'client_id' => $client->id,
                     'total' => $total,

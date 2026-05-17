@@ -4,10 +4,14 @@ namespace App\Http\Controllers\Invoices;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Invoices\StoreInvoiceRequest;
+use App\Http\Requests\Invoices\UpdateInvoiceRequest;
 use App\Models\Invoice;
+use App\Models\Outlet;
 use App\Models\Product;
 use App\Models\Client;
 use App\Services\InvoiceService;
+use Barryvdh\DomPDF\Facade\Pdf;
+
 use Inertia\Inertia;
 
 class InvoiceController extends Controller
@@ -32,6 +36,7 @@ class InvoiceController extends Controller
             'products' => Product::with(['category', 'unit'])->get(),
             'clients' => Client::all(),
             'categories' => \App\Models\Category::all(),
+            'outlets' => Outlet::all(),
         ]);
     }
 
@@ -39,6 +44,23 @@ class InvoiceController extends Controller
     {
         $this->invoiceService->createInvoice($request->validated());
         return redirect()->route('history')->with('success', 'Invoice created successfully.');
+    }
+
+    public function edit(Invoice $invoice)
+    {
+        return Inertia::render('invoices/edit', [
+            'invoice' => $invoice->load(['items.product']),
+            'products' => Product::with(['category', 'unit'])->get(),
+            'clients' => Client::all(),
+            'categories' => \App\Models\Category::all(),
+            'outlets' => Outlet::all(),
+        ]);
+    }
+
+    public function update(UpdateInvoiceRequest $request, Invoice $invoice)
+    {
+        $this->invoiceService->updateInvoice($invoice, $request->validated());
+        return redirect()->route('history')->with('success', 'Invoice updated successfully.');
     }
 
     public function show(Invoice $invoice)
@@ -52,5 +74,23 @@ class InvoiceController extends Controller
     {
         $invoice->delete();
         return redirect()->back()->with('success', 'Invoice deleted successfully.');
+    }
+
+    public function updateStatus(\Illuminate\Http\Request $request, Invoice $invoice)
+    {
+        $validated = $request->validate([
+            'status' => 'required|string|in:Pending,Delivered,Cancelled,Processing,In House',
+        ]);
+
+        $invoice->update(['status' => $validated['status']]);
+
+        return redirect()->back()->with('success', 'Invoice status updated successfully.');
+    }
+
+     public function print(Invoice $invoice)
+    {
+        $invoice->load(['client', 'items.product']);
+        $pdf = Pdf::loadView('invoices.pdf', compact('invoice'));
+        return $pdf->stream('invoice-' . $invoice->invoice_uuid . '.pdf');
     }
 }

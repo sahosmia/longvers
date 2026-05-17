@@ -42,6 +42,10 @@
                         'name' => 'Lot Merge History',
                         'href' => $this->url->link('extension/module/inventory_module/lot_merge', 'user_token=' . $this->session->data['user_token'], true),
                     );
+                    $submenus[] = array(
+                        'name' => 'Product Gifts',
+                        'href' => $this->url->link('extension/module/inventory_module/gift', 'user_token=' . $this->session->data['user_token'], true),
+                    );
 
                     $submenus[] = array(
                         'name' => 'Top Selling Products',
