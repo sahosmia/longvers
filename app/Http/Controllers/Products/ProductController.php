@@ -13,7 +13,7 @@ class ProductController extends Controller
 {
       public function index()
     {
-        $query = Product::with('category')->latest();
+        $query = Product::with(['category', 'unit'])->latest();
 
         if (request('filter') === 'low_stock') {
             $query->where('stock', '>', 0)->where('stock', '<=', 10);
@@ -24,6 +24,7 @@ class ProductController extends Controller
         return Inertia::render('products/index', [
             'products' => $query->get(),
             'categories' => \App\Models\Category::all(),
+            'units' => \App\Models\Unit::all(),
         ]);
     }
 

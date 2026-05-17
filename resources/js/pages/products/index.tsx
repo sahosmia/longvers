@@ -45,7 +45,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const formatCurrency = (n: number) => `৳${n.toLocaleString("en-BD")}`;
 
-export default function Products({ products, categories, filter, units }: ProductsProps) {
+export default function Products({ products, categories = [], filter, units = [] }: ProductsProps) {
     const [search, setSearch] = useState("");
     const [showModal, setShowModal] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
