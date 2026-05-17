@@ -15,40 +15,38 @@ class DemoDataSeeder extends Seeder
 {
     public function run(): void
     {
-        $outlet = Outlet::create(['name' => 'Main Outlet', 'location' => 'Dhaka']);
+        $outlet = Outlet::first() ?? Outlet::create(['name' => 'Main Outlet', 'location' => 'Dhaka']);
 
-        $categories = ['Gents', 'Ladies', 'Kids', 'Household', 'Others'];
-        $categoryModels = [];
-        foreach ($categories as $cat) {
-            $categoryModels[$cat] = Category::create([
-                'name' => $cat,
-                'slug' => strtolower($cat),
-                'description' => $cat . ' category',
-            ]);
-        }
+        $productModels = Product::all()->toArray();
+        if (empty($productModels)) {
+             $categories = ['Gents', 'Ladies', 'Kids', 'Household', 'Others'];
+            $categoryModels = [];
+            foreach ($categories as $cat) {
+                $categoryModels[$cat] = Category::firstOrCreate([
+                    'name' => $cat,
+                ], [
+                    'slug' => strtolower($cat),
+                    'description' => $cat . ' category',
+                ]);
+            }
 
-        $productsData = [
-            ['name' => 'Cotton Shirt', 'category' => 'Gents', 'price' => 25],
-            ['name' => 'Jeans Pant', 'category' => 'Gents', 'price' => 35],
-            ['name' => 'Silk Panjabi', 'category' => 'Gents', 'price' => 50],
-            ['name' => 'Salwar Kameez', 'category' => 'Ladies', 'price' => 45],
-            ['name' => 'Silk Saree', 'category' => 'Ladies', 'price' => 120],
-            ['name' => 'Chiffon Orna', 'category' => 'Ladies', 'price' => 15],
-            ['name' => 'Kids T-Shirt', 'category' => 'Kids', 'price' => 12],
-            ['name' => 'Kids Frock', 'category' => 'Kids', 'price' => 20],
-            ['name' => 'Bed Sheet', 'category' => 'Household', 'price' => 40],
-            ['name' => 'Curtain Pair', 'category' => 'Household', 'price' => 60],
-            ['name' => 'Blanket Wash', 'category' => 'Household', 'price' => 150],
-            ['name' => 'Backpack', 'category' => 'Others', 'price' => 80],
-        ];
+            $productsData = [
+                ['name' => 'Cotton Shirt', 'category' => 'Gents', 'price' => 25],
+                ['name' => 'Jeans Pant', 'category' => 'Gents', 'price' => 35],
+                ['name' => 'Silk Panjabi', 'category' => 'Gents', 'price' => 50],
+                ['name' => 'Salwar Kameez', 'category' => 'Ladies', 'price' => 45],
+            ];
 
-        $productModels = [];
-        foreach ($productsData as $p) {
-            $productModels[] = Product::create([
-                'name' => $p['name'],
-                'category_id' => $categoryModels[$p['category']]->id,
-                'price' => $p['price'],
-            ]);
+            foreach ($productsData as $p) {
+                Product::create([
+                    'name' => $p['name'],
+                    'category_id' => $categoryModels[$p['category']]->id,
+                    'price' => $p['price'],
+                ]);
+            }
+            $productModels = Product::all();
+        } else {
+            $productModels = Product::all();
         }
 
         $clientsData = [
@@ -69,16 +67,14 @@ class DemoDataSeeder extends Seeder
             for ($i = 0; $i < $numInvoices; $i++) {
                 $total = 0;
                 $items = [];
-                $numItems = rand(1, 4);
+                $numItems = rand(1, min(4, $productModels->count()));
 
                 $invoiceId = 'INV-' . date('Ymd') . rand(1000, 9999);
 
                 // Select random products for the invoice
-                $selectedProducts = array_rand($productModels, $numItems);
-                if (!is_array($selectedProducts)) $selectedProducts = [$selectedProducts];
+                $selectedProducts = $productModels->random($numItems);
 
-                foreach ($selectedProducts as $pIdx) {
-                    $prod = $productModels[$pIdx];
+                foreach ($selectedProducts as $prod) {
                     $qty = rand(1, 3);
                     $price = $prod->price;
                     $total += $qty * $price;

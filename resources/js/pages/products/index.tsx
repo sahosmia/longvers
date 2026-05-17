@@ -30,8 +30,8 @@ export default function Products({ products, categories, filter, units, outlets 
 
     const { data, setData, post, put, delete: destroy, reset, errors, processing } = useForm({
         name: '',
-        category_id: '',
-        unit_id: '',
+        category_id: null as number | null,
+        unit_id: null as number | null,
         price: '',
         outlet_prices: [] as { outlet_id: number; price: string }[],
     });
@@ -51,8 +51,8 @@ export default function Products({ products, categories, filter, units, outlets 
         setEditingProduct(product);
         setData({
             name: product.name,
-            category_id: product.category_id.toString(),
-            unit_id: product.unit_id?.toString() || '',
+            category_id: product.category_id,
+            unit_id: product.unit_id || null,
             price: product.price.toString(),
             outlet_prices: outlets.map(o => {
                 const existing = product.outlet_prices?.find(op => op.outlet_id === o.id);
@@ -229,8 +229,8 @@ export default function Products({ products, categories, filter, units, outlets 
                                     <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Category</label>
                                     <SearchableSelect
                                         options={categories.map(c => ({ label: c.name, value: c.id }))}
-                                        value={data.category_id}
-                                        onChange={val => setData('category_id', val.toString())}
+                                        value={data.category_id || ''}
+                                        onChange={val => setData('category_id', Number(val))}
                                         placeholder="Select Category"
                                         error={errors.category_id}
                                     />
@@ -239,8 +239,8 @@ export default function Products({ products, categories, filter, units, outlets 
                                     <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Unit</label>
                                     <SearchableSelect
                                         options={units.map(u => ({ label: u.name, value: u.id }))}
-                                        value={data.unit_id}
-                                        onChange={val => setData('unit_id', val.toString())}
+                                        value={data.unit_id || ''}
+                                        onChange={val => setData('unit_id', Number(val))}
                                         placeholder="Select Unit"
                                         error={errors.unit_id}
                                     />

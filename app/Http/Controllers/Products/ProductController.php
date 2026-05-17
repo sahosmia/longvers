@@ -28,7 +28,9 @@ class ProductController extends Controller
     public function store(StoreProductRequest $request)
     {
         $validated = $request->validated();
-        $outletPrices = $validated['outlet_prices'] ?? [];
+        $outletPrices = array_filter($validated['outlet_prices'] ?? [], function ($op) {
+            return !empty($op['price']) || $op['price'] === "0" || $op['price'] === 0;
+        });
         unset($validated['outlet_prices']);
 
         $product = Product::create($validated);
@@ -42,7 +44,9 @@ class ProductController extends Controller
     public function update(UpdateProductRequest $request, Product $product)
     {
         $validated = $request->validated();
-        $outletPrices = $validated['outlet_prices'] ?? [];
+        $outletPrices = array_filter($validated['outlet_prices'] ?? [], function ($op) {
+            return !empty($op['price']) || $op['price'] === "0" || $op['price'] === 0;
+        });
         unset($validated['outlet_prices']);
 
         $product->update($validated);

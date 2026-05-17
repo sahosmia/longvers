@@ -49,7 +49,7 @@ export function SearchableSelect({
                                 'w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-foreground bg-transparent focus:ring-0 focus:outline-none',
                                 disabled && 'cursor-not-allowed opacity-50',
                             )}
-                            displayValue={(val: string | number) => options.find((o) => o.value === val)?.label || ''}
+                            displayValue={(val: string | number) => options.find((o) => o.value == val)?.label || ''}
                             onChange={(event) => setQuery(event.target.value)}
                             placeholder={placeholder}
                         />

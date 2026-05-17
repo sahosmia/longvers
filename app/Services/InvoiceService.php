@@ -60,14 +60,6 @@ class InvoiceService
     public function updateInvoice(Invoice $invoice, array $data)
     {
         return DB::transaction(function () use ($invoice, $data) {
-            // Restore product stock before update
-            foreach ($invoice->items as $oldItem) {
-                $product = \App\Models\Product::find($oldItem->product_id);
-                if ($product) {
-                    $product->increment('stock', $oldItem->qty);
-                }
-            }
-
             // Revert client stats
             $oldClient = Client::find($invoice->client_id);
             if ($oldClient) {
@@ -95,7 +87,7 @@ class InvoiceService
             // Delete old items
             $invoice->items()->delete();
 
-            // Create new items and update stock
+            // Create new items
             foreach ($data['items'] as $item) {
                 InvoiceItem::create([
                     'invoice_id' => $invoice->id,
@@ -103,11 +95,6 @@ class InvoiceService
                     'qty' => $item['qty'],
                     'price' => $item['price'],
                 ]);
-
-                $product = \App\Models\Product::find($item['productId']);
-                if ($product) {
-                    $product->decrement('stock', $item['qty']);
-                }
             }
 
             // Update client stats again
