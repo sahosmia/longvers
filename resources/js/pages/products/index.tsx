@@ -2,42 +2,8 @@ import { Head, useForm } from '@inertiajs/react';
 import { useState } from "react";
 import { Search, Plus, Trash2, Edit3, X } from "lucide-react";
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
+import { type BreadcrumbItem, Category, Unit, Outlet, Product } from '@/types';
 import { SearchableSelect } from '@/components/ui/searchable-select';
-
-interface Category {
-    id: number;
-    name: string;
-}
-
-interface Unit {
-    id: number;
-    name: string;
-    short_name: string;
-}
-
-interface Outlet {
-    id: number;
-    name: string;
-}
-
-interface OutletProductPrice {
-    id: number;
-    outlet_id: number;
-    product_id: number;
-    price: number;
-}
-
-interface Product {
-    id: number;
-    name: string;
-    category_id: number;
-    category: Category;
-    unit_id?: number;
-    unit?: Unit;
-    price: number;
-    outlet_prices?: OutletProductPrice[];
-}
 
 interface ProductsProps {
     products: Product[];
@@ -60,6 +26,7 @@ export default function Products({ products, categories, filter, units, outlets 
     const [search, setSearch] = useState("");
     const [showModal, setShowModal] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+    const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
     const { data, setData, post, put, delete: destroy, reset, errors, processing } = useForm({
         name: '',
@@ -117,6 +84,34 @@ export default function Products({ products, categories, filter, units, outlets 
         }
     };
 
+    const handleBulkDelete = () => {
+        const isDeleteAll = selectedIds.length === 0;
+        const message = isDeleteAll
+            ? 'Are you sure you want to delete ALL products?'
+            : `Are you sure you want to delete ${selectedIds.length} selected products?`;
+
+        if (confirm(message)) {
+            router.delete(route('products.bulk-destroy'), {
+                data: { ids: selectedIds },
+                onSuccess: () => setSelectedIds([]),
+            });
+        }
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedIds.length === filtered.length) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(filtered.map(p => p.id));
+        }
+    };
+
+    const toggleSelect = (id: number) => {
+        setSelectedIds(prev =>
+            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+        );
+    };
+
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -127,12 +122,21 @@ export default function Products({ products, categories, filter, units, outlets 
                         <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">Products</h1>
                         <p className="text-sm text-neutral-500 dark:text-neutral-400">{products.length} items</p>
                     </div>
-                    <button
-                        onClick={openCreateModal}
-                        className="flex items-center gap-2 bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-lg"
-                    >
-                        <Plus className="w-4 h-4" /> Add Product
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={handleBulkDelete}
+                            className="flex items-center gap-2 bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 px-4 py-2.5 rounded-xl text-sm font-semibold border border-red-100 dark:border-red-800/50 transition-colors"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                            {selectedIds.length > 0 ? `Delete Selected (${selectedIds.length})` : 'Delete All'}
+                        </button>
+                        <button
+                            onClick={openCreateModal}
+                            className="flex items-center gap-2 bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-lg"
+                        >
+                            <Plus className="w-4 h-4" /> Add Product
+                        </button>
+                    </div>
                 </div>
 
                 <div className="relative">
@@ -151,7 +155,15 @@ export default function Products({ products, categories, filter, units, outlets 
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="bg-neutral-50 dark:bg-neutral-800/50 text-neutral-500 text-xs uppercase tracking-wider">
-                                    <th className="text-left px-5 py-3 font-semibold">ID</th>
+                                    <th className="px-5 py-3 text-center">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedIds.length === filtered.length && filtered.length > 0}
+                                            onChange={toggleSelectAll}
+                                            className="rounded border-neutral-300 dark:border-neutral-700 text-blue-600 focus:ring-blue-500"
+                                        />
+                                    </th>
+                                    <th className="text-left px-3 py-3 font-semibold">ID</th>
                                     <th className="text-left px-3 py-3 font-semibold">Name</th>
                                     <th className="text-left px-3 py-3 font-semibold">Category</th>
                                     <th className="text-right px-3 py-3 font-semibold">Price</th>
@@ -160,8 +172,16 @@ export default function Products({ products, categories, filter, units, outlets 
                             </thead>
                             <tbody>
                                 {filtered.map((p) => (
-                                    <tr key={p.id} className="border-b border-neutral-50 dark:border-neutral-800 hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors">
-                                        <td className="px-5 py-3 font-mono text-xs text-neutral-500">{p.id}</td>
+                                    <tr key={p.id} className={`border-b border-neutral-50 dark:border-neutral-800 hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors ${selectedIds.includes(p.id) ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}>
+                                        <td className="px-5 py-3 text-center">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedIds.includes(p.id)}
+                                                onChange={() => toggleSelect(p.id)}
+                                                className="rounded border-neutral-300 dark:border-neutral-700 text-blue-600 focus:ring-blue-500"
+                                            />
+                                        </td>
+                                        <td className="px-3 py-3 font-mono text-xs text-neutral-500">{p.id}</td>
                                         <td className="px-3 py-3 font-medium text-neutral-800 dark:text-neutral-200">{p.name}</td>
                                         <td className="px-3 py-3">
                                             <span className="px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-[10px] font-semibold text-neutral-600 dark:text-neutral-400">
@@ -199,6 +219,7 @@ export default function Products({ products, categories, filter, units, outlets 
                                     value={data.name}
                                     onChange={e => setData('name', e.target.value)}
                                     className="w-full mt-1 border border-neutral-200 dark:border-neutral-800 rounded-xl px-3 py-2 text-sm bg-transparent dark:text-neutral-100"
+                                    placeholder="Enter product name (e.g. Cotton Shirt)"
                                     required
                                 />
                                 {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
@@ -233,6 +254,7 @@ export default function Products({ products, categories, filter, units, outlets 
                                         value={data.price}
                                         onChange={e => setData('price', e.target.value)}
                                         className="w-full mt-1 border border-neutral-200 dark:border-neutral-800 rounded-xl px-3 py-2 text-sm bg-transparent dark:text-neutral-100"
+                                        placeholder="0.00"
                                         required
                                     />
                                     {errors.price && <p className="text-xs text-red-500 mt-1">{errors.price}</p>}

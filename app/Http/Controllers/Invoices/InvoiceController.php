@@ -76,6 +76,18 @@ class InvoiceController extends Controller
         return redirect()->back()->with('success', 'Invoice deleted successfully.');
     }
 
+    public function bulkDestroy(\Illuminate\Http\Request $request)
+    {
+        $ids = $request->input('ids');
+        if (empty($ids)) {
+            Invoice::query()->delete();
+            return redirect()->back()->with('success', 'All invoices deleted successfully.');
+        }
+
+        Invoice::whereIn('id', $ids)->delete();
+        return redirect()->back()->with('success', 'Selected invoices deleted successfully.');
+    }
+
     public function updateStatus(\Illuminate\Http\Request $request, Invoice $invoice)
     {
         $validated = $request->validate([

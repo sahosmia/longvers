@@ -2,18 +2,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { useState } from "react";
 import { Plus, Search, Eye, Trash2, Printer, Edit } from "lucide-react";
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
-
-interface Invoice {
-    id: number;
-    invoice_uuid: string;
-    date: string;
-    client: { name: string };
-    total: number;
-    paid: number;
-    due: number;
-    status: string;
-}
+import { type BreadcrumbItem, Invoice } from '@/types';
 
 interface InvoiceHistoryProps {
     invoices: Invoice[];
@@ -40,7 +29,7 @@ function StatusSelect({ invoice }: { invoice: Invoice }) {
         });
     };
 
-    const map: any = {
+    const map: Record<string, string> = {
         Pending: "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800",
         Processing: "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800",
         "In House": "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800",
@@ -68,6 +57,7 @@ function StatusSelect({ invoice }: { invoice: Invoice }) {
 
 export default function InvoiceHistory({ invoices }: InvoiceHistoryProps) {
     const [search, setSearch] = useState("");
+    const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
     const filtered = invoices.filter((inv) =>
         inv.client.name.toLowerCase().includes(search.toLowerCase()) || inv.invoice_uuid.toLowerCase().includes(search.toLowerCase())
@@ -79,7 +69,35 @@ export default function InvoiceHistory({ invoices }: InvoiceHistoryProps) {
         }
     };
 
-    const handlePrint = (invoice) => {
+    const handleBulkDelete = () => {
+        const isDeleteAll = selectedIds.length === 0;
+        const message = isDeleteAll
+            ? 'Are you sure you want to delete ALL invoices?'
+            : `Are you sure you want to delete ${selectedIds.length} selected invoices?`;
+
+        if (confirm(message)) {
+            router.delete(route('invoices.bulk-destroy'), {
+                data: { ids: selectedIds },
+                onSuccess: () => setSelectedIds([]),
+            });
+        }
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedIds.length === filtered.length) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(filtered.map(i => i.id));
+        }
+    };
+
+    const toggleSelect = (id: number) => {
+        setSelectedIds(prev =>
+            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+        );
+    };
+
+    const handlePrint = (invoice: Invoice) => {
         window.open(route('invoices.print', invoice.id), '_blank');
     };
 
@@ -92,12 +110,21 @@ export default function InvoiceHistory({ invoices }: InvoiceHistoryProps) {
                         <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">Invoice History</h1>
                         <p className="text-sm text-neutral-500 dark:text-neutral-400">All invoices at a glance</p>
                     </div>
-                    <Link
-                        href={route('create-invoice')}
-                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
-                    >
-                        <Plus className="w-4 h-4" /> Create Invoice
-                    </Link>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={handleBulkDelete}
+                            className="flex items-center gap-2 bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 px-4 py-2.5 rounded-xl text-sm font-semibold border border-red-100 dark:border-red-800/50 transition-colors"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                            {selectedIds.length > 0 ? `Delete Selected (${selectedIds.length})` : 'Delete All'}
+                        </button>
+                        <Link
+                            href={route('create-invoice')}
+                            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
+                        >
+                            <Plus className="w-4 h-4" /> Create Invoice
+                        </Link>
+                    </div>
                 </div>
 
                 <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4">
@@ -118,7 +145,15 @@ export default function InvoiceHistory({ invoices }: InvoiceHistoryProps) {
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="bg-neutral-50 dark:bg-neutral-800/50 text-neutral-500 text-xs uppercase tracking-wider">
-                                    <th className="text-left px-5 py-3 font-semibold">Invoice UUID</th>
+                                    <th className="px-5 py-3 text-center">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedIds.length === filtered.length && filtered.length > 0}
+                                            onChange={toggleSelectAll}
+                                            className="rounded border-neutral-300 dark:border-neutral-700 text-blue-600 focus:ring-blue-500"
+                                        />
+                                    </th>
+                                    <th className="text-left px-3 py-3 font-semibold">Invoice UUID</th>
                                     <th className="text-left px-3 py-3 font-semibold">Date</th>
                                     <th className="text-left px-3 py-3 font-semibold">Client</th>
                                     <th className="text-right px-3 py-3 font-semibold">Total</th>
@@ -130,8 +165,16 @@ export default function InvoiceHistory({ invoices }: InvoiceHistoryProps) {
                             </thead>
                             <tbody>
                                 {filtered.map((inv) => (
-                                    <tr key={inv.id} className="border-b border-neutral-50 dark:border-neutral-800 hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors">
-                                        <td className="px-5 py-3 font-mono text-xs font-semibold text-blue-600">{inv.invoice_uuid}</td>
+                                    <tr key={inv.id} className={`border-b border-neutral-50 dark:border-neutral-800 hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors ${selectedIds.includes(inv.id) ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}>
+                                        <td className="px-5 py-3 text-center">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedIds.includes(inv.id)}
+                                                onChange={() => toggleSelect(inv.id)}
+                                                className="rounded border-neutral-300 dark:border-neutral-700 text-blue-600 focus:ring-blue-500"
+                                            />
+                                        </td>
+                                        <td className="px-3 py-3 font-mono text-xs font-semibold text-blue-600">{inv.invoice_uuid}</td>
                                         <td className="px-3 py-3 text-neutral-600 dark:text-neutral-400">{inv.date}</td>
                                         <td className="px-3 py-3 font-medium text-neutral-800 dark:text-neutral-200">{inv.client.name}</td>
                                         <td className="px-3 py-3 text-right font-semibold text-neutral-900 dark:text-neutral-100">{formatCurrency(Number(inv.total))}</td>

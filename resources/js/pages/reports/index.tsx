@@ -13,8 +13,18 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const formatCurrency = (n: number) => `৳${n.toLocaleString("en-BD")}`;
 
-function StatCard({ icon: Icon, label, value, sub, color = "blue" }: any) {
-    const colorMap: any = {
+type ColorKey = "blue" | "green" | "red" | "amber" | "purple";
+
+interface StatCardProps {
+    icon: React.ElementType;
+    label: string;
+    value: string;
+    sub?: string;
+    color?: ColorKey;
+}
+
+function StatCard({ icon: Icon, label, value, sub, color = "blue" }: StatCardProps) {
+    const colorMap: Record<ColorKey, string> = {
       blue: "from-blue-500 to-blue-600",
       green: "from-emerald-500 to-emerald-600",
       red: "from-red-500 to-red-600",
@@ -37,9 +47,23 @@ function StatCard({ icon: Icon, label, value, sub, color = "blue" }: any) {
     );
 }
 
+interface MonthlyData {
+    month: string;
+    revenue: number;
+    paid: number;
+    due: number;
+    cost: number;
+}
+
+interface CategorySplit {
+    name: string;
+    value: number;
+    fill: string;
+}
+
 interface ReportsProps {
-    monthlyData: any[];
-    categorySplit: any[];
+    monthlyData: MonthlyData[];
+    categorySplit: CategorySplit[];
     totalServices: number;
 }
 
@@ -71,7 +95,7 @@ export default function Reports({ monthlyData, categorySplit, totalServices }: R
                                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#94a3b8" }} />
                                 <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} />
-                                <Tooltip formatter={(v: any) => formatCurrency(v)} contentStyle={{ borderRadius: 12, fontSize: 12 }} />
+                                <Tooltip formatter={(v: number) => formatCurrency(v)} contentStyle={{ borderRadius: 12, fontSize: 12 }} />
                                 <Legend wrapperStyle={{ fontSize: 11 }} />
                                 <Bar dataKey="revenue" fill="#6366f1" name="Revenue" radius={[4, 4, 0, 0]} />
                                 <Bar dataKey="paid" fill="#10b981" name="Paid" radius={[4, 4, 0, 0]} />
@@ -87,7 +111,7 @@ export default function Reports({ monthlyData, categorySplit, totalServices }: R
                                 <Pie data={categorySplit} cx="50%" cy="50%" outerRadius={75} dataKey="value" paddingAngle={3}>
                                     {categorySplit.map((e, i) => <Cell key={i} fill={e.fill} />)}
                                 </Pie>
-                                <Tooltip formatter={(v: any) => formatCurrency(v)} contentStyle={{ borderRadius: 12, fontSize: 12 }} />
+                                <Tooltip formatter={(v: number) => formatCurrency(v)} contentStyle={{ borderRadius: 12, fontSize: 12 }} />
                             </PieChart>
                         </ResponsiveContainer>
                         <div className="flex flex-wrap gap-x-4 gap-y-1 justify-center mt-2">

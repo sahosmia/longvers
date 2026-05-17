@@ -12,8 +12,16 @@ interface DashboardProps {
         total_due: number;
         pending: number;
     };
-    top_clients: any[];
-    dailyRevenue: any[];
+    top_clients: {
+        id: number;
+        name: string;
+        total_paid: number;
+    }[];
+    dailyRevenue: {
+        day: string;
+        revenue: number;
+        paid: number;
+    }[];
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -25,8 +33,19 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const formatCurrency = (n: number) => `৳${n.toLocaleString("en-BD")}`;
 
-function StatCard({ icon: Icon, label, value, sub, color = "blue", trend }: any) {
-  const colorMap: any = {
+type ColorKey = "blue" | "green" | "red" | "amber" | "purple";
+
+interface StatCardProps {
+    icon: React.ElementType;
+    label: string;
+    value: string | number;
+    sub?: string;
+    color?: ColorKey;
+    trend?: number;
+}
+
+function StatCard({ icon: Icon, label, value, sub, color = "blue", trend }: StatCardProps) {
+  const colorMap: Record<ColorKey, string> = {
     blue: "from-blue-500 to-blue-600",
     green: "from-emerald-500 to-emerald-600",
     red: "from-red-500 to-red-600",
@@ -102,7 +121,7 @@ export default function Dashboard({ stats, top_clients, dailyRevenue }: Dashboar
                                 <Pie data={pieData} cx="50%" cy="50%" innerRadius={55} outerRadius={80} paddingAngle={4} dataKey="value">
                                     {pieData.map((e, i) => <Cell key={i} fill={e.fill} />)}
                                 </Pie>
-                                <Tooltip formatter={(v: any) => formatCurrency(v)} contentStyle={{ borderRadius: 12, fontSize: 12 }} />
+                                <Tooltip formatter={(v: number) => formatCurrency(v)} contentStyle={{ borderRadius: 12, fontSize: 12 }} />
                             </PieChart>
                         </ResponsiveContainer>
                         <div className="flex flex-col justify-center gap-2 mt-2">
@@ -123,7 +142,7 @@ export default function Dashboard({ stats, top_clients, dailyRevenue }: Dashboar
                             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                             <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#94a3b8" }} />
                             <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} />
-                            <Tooltip formatter={(v: any) => formatCurrency(v)} contentStyle={{ borderRadius: 12, fontSize: 12 }} />
+                            <Tooltip formatter={(v: number) => formatCurrency(v)} contentStyle={{ borderRadius: 12, fontSize: 12 }} />
                             <Bar dataKey="total" fill="#6366f1" radius={[6, 6, 0, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
