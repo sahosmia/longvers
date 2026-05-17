@@ -1,7 +1,7 @@
 import { Head } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
-import InvoiceForm, { Category, Product, Client, Outlet } from '@/components/invoice-form';
+import { type BreadcrumbItem, Category, Product, Client, Outlet } from '@/types';
+import InvoiceForm from '@/components/invoice-form';
 
 interface CreateInvoiceProps {
     products: Product[];
