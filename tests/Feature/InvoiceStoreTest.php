@@ -12,7 +12,6 @@ test('invoice can be stored with existing client', function () {
         'name' => 'Test Product',
         'category_id' => $category->id,
         'price' => 100,
-        'stock' => 10
     ]);
     $client = Client::create([
         'name' => 'Existing Client',
@@ -75,7 +74,6 @@ test('invoice can be stored with new client', function () {
         'name' => 'Test Product',
         'category_id' => $category->id,
         'price' => 100,
-        'stock' => 10
     ]);
 
     $data = [
