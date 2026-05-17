@@ -14,6 +14,11 @@ class Product extends Model
         'stock',
     ];
 
+    public function outletPrices()
+    {
+        return $this->hasMany(OutletProductPrice::class);
+    }
+
     public function category()
     {
         return $this->belongsTo(Category::class);

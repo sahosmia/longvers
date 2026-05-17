@@ -13,6 +13,7 @@ class Invoice extends Model
         'id',
         'date',
         'client_id',
+        'outlet_id',
         'total',
         'paid',
         'due',
@@ -26,6 +27,10 @@ class Invoice extends Model
         return $this->belongsTo(Client::class);
     }
 
+    public function outlet()
+    {
+        return $this->belongsTo(Outlet::class);
+    }
     public function items()
     {
         return $this->hasMany(InvoiceItem::class);

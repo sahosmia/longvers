@@ -16,6 +16,18 @@ interface Unit {
     short_name: string;
 }
 
+interface Outlet {
+    id: number;
+    name: string;
+}
+
+interface OutletProductPrice {
+    id: number;
+    outlet_id: number;
+    product_id: number;
+    price: number;
+}
+
 interface Product {
     id: number;
     name: string;
@@ -25,12 +37,14 @@ interface Product {
     unit?: Unit;
     price: number;
     stock: number;
+    outlet_prices?: OutletProductPrice[];
 }
 
 interface ProductsProps {
     products: Product[];
     categories: Category[];
     units: Unit[];
+    outlets: Outlet[];
     filter?: string;
 }
 
@@ -43,7 +57,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const formatCurrency = (n: number) => `৳${n.toLocaleString("en-BD")}`;
 
-export default function Products({ products, categories, filter, units }: ProductsProps) {
+export default function Products({ products, categories, filter, units, outlets }: ProductsProps) {
     const [search, setSearch] = useState("");
     const [showModal, setShowModal] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -54,6 +68,7 @@ export default function Products({ products, categories, filter, units }: Produc
         unit_id: '',
         price: '',
         stock: '0',
+        outlet_prices: [] as { outlet_id: number; price: string }[],
     });
 
     const filtered = products.filter((p) =>
@@ -63,6 +78,7 @@ export default function Products({ products, categories, filter, units }: Produc
     const openCreateModal = () => {
         setEditingProduct(null);
         reset();
+        setData('outlet_prices', outlets.map(o => ({ outlet_id: o.id, price: '' })));
         setShowModal(true);
     };
 
@@ -74,6 +90,10 @@ export default function Products({ products, categories, filter, units }: Produc
             unit_id: product.unit_id?.toString() || '',
             price: product.price.toString(),
             stock: product.stock.toString(),
+            outlet_prices: outlets.map(o => {
+                const existing = product.outlet_prices?.find(op => op.outlet_id === o.id);
+                return { outlet_id: o.id, price: existing ? existing.price.toString() : '' };
+            }),
         });
         setShowModal(true);
     };
@@ -217,7 +237,7 @@ export default function Products({ products, categories, filter, units }: Produc
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Price (৳)</label>
+                                    <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Base Price (৳)</label>
                                     <input
                                         type="number"
                                         value={data.price}
@@ -239,6 +259,33 @@ export default function Products({ products, categories, filter, units }: Produc
                                     {errors.stock && <p className="text-xs text-red-500 mt-1">{errors.stock}</p>}
                                 </div>
                             </div>
+                            <div className="space-y-3">
+                                <h4 className="text-sm font-bold text-neutral-900 dark:text-neutral-100">Outlet-wise Prices (Optional)</h4>
+                                <div className="grid grid-cols-2 gap-4">
+                                    {outlets.map((outlet, idx) => (
+                                        <div key={outlet.id}>
+                                            <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">{outlet.name} Price</label>
+                                            <input
+                                                type="number"
+                                                value={data.outlet_prices.find(op => op.outlet_id === outlet.id)?.price || ''}
+                                                onChange={e => {
+                                                    const newOutletPrices = [...data.outlet_prices];
+                                                    const opIdx = newOutletPrices.findIndex(op => op.outlet_id === outlet.id);
+                                                    if (opIdx > -1) {
+                                                        newOutletPrices[opIdx].price = e.target.value;
+                                                    } else {
+                                                        newOutletPrices.push({ outlet_id: outlet.id, price: e.target.value });
+                                                    }
+                                                    setData('outlet_prices', newOutletPrices);
+                                                }}
+                                                className="w-full mt-1 border border-neutral-200 dark:border-neutral-800 rounded-xl px-3 py-2 text-sm bg-transparent dark:text-neutral-100"
+                                                placeholder="Same as base"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
                             <div className="flex gap-2 pt-2">
                                 <button
                                     type="submit"

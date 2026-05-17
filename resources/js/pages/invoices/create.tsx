@@ -13,12 +13,23 @@ interface Category {
     name: string;
 }
 
+interface Outlet {
+    id: number;
+    name: string;
+}
+
+interface OutletProductPrice {
+    outlet_id: number;
+    price: number;
+}
+
 interface Product {
     id: number;
     name: string;
     category_id: number;
     category: Category;
     price: number;
+    outlet_prices?: OutletProductPrice[];
 }
 
 interface Client {
@@ -31,6 +42,7 @@ interface CreateInvoiceProps {
     products: Product[];
     clients: Client[];
     categories: Category[];
+    outlets: Outlet[];
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -43,7 +55,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 const formatCurrency = (n: number) => `৳${n.toLocaleString("en-BD")}`;
 const generateInvoiceId = () => `INV-${Date.now().toString().slice(-8)}`;
 
-export default function CreateInvoice({ products, clients, categories }: CreateInvoiceProps) {
+export default function CreateInvoice({ products, clients, categories, outlets }: CreateInvoiceProps) {
     const [searchTerm, setSearchTerm] = useState("");
     const [showDropdown, setShowDropdown] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState("All");
@@ -52,6 +64,7 @@ export default function CreateInvoice({ products, clients, categories }: CreateI
         id: generateInvoiceId(),
         date: new Date().toISOString().split('T')[0],
         client_id: null as string | number | null,
+        outlet_id: outlets.length > 0 ? outlets[0].id : '',
         create_new_client: false,
         new_client_name: '',
         new_client_phone: '',
@@ -77,10 +90,14 @@ export default function CreateInvoice({ products, clients, categories }: CreateI
         const existingIdx = data.items.findIndex((i: any) => i.productId === product.id);
         let newItems = [...data.items];
 
+        const outletPrice = product.outlet_prices?.find(op => op.outlet_id === Number(data.outlet_id))?.price;
+        const price = outletPrice !== undefined ? Number(outletPrice) : Number(product.price);
+
         if (existingIdx > -1) {
             newItems[existingIdx].qty += 1;
+            newItems[existingIdx].price = price; // Update price in case outlet changed
         } else {
-            newItems.push({ productId: product.id, name: product.name, price: product.price, qty: 1 });
+            newItems.push({ productId: product.id, name: product.name, price: price, qty: 1 });
         }
 
         const newTotal = newItems.reduce((s, i) => s + i.price * i.qty, 0);
@@ -198,7 +215,9 @@ export default function CreateInvoice({ products, clients, categories }: CreateI
                                                         <span className="text-sm font-medium text-neutral-800 dark:text-neutral-200">{p.name}</span>
                                                     </div>
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-sm font-bold text-blue-600">{formatCurrency(Number(p.price))}</span>
+                                                        <span className="text-sm font-bold text-blue-600">
+                                                            {formatCurrency(Number(p.outlet_prices?.find(op => op.outlet_id === Number(data.outlet_id))?.price ?? p.price))}
+                                                        </span>
                                                     </div>
                                                 </button>
                                             ))
@@ -326,6 +345,43 @@ export default function CreateInvoice({ products, clients, categories }: CreateI
                                     </div>
                                 </div>
                             )}
+                        </div>
+
+                        <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5 space-y-3">
+                            <h3 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 flex items-center gap-2"><Package className="w-4 h-4" /> Outlet</h3>
+                            <select
+                                value={data.outlet_id}
+                                onChange={e => {
+                                    const newOutletId = e.target.value;
+                                    setData('outlet_id', newOutletId);
+
+                                    // Optionally update prices of existing items when outlet changes
+                                    const updatedItems = data.items.map((item: any) => {
+                                        const product = products.find(p => p.id === item.productId);
+                                        if (product) {
+                                            const outletPrice = product.outlet_prices?.find(op => op.outlet_id === Number(newOutletId))?.price;
+                                            return { ...item, price: outletPrice !== undefined ? Number(outletPrice) : Number(product.price) };
+                                        }
+                                        return item;
+                                    });
+                                    const newTotal = updatedItems.reduce((s: number, i: any) => s + i.price * i.qty, 0);
+                                    setData(d => ({
+                                        ...d,
+                                        outlet_id: newOutletId,
+                                        items: updatedItems,
+                                        total: newTotal,
+                                        due: newTotal - (Number(d.paid) || 0)
+                                    }));
+                                }}
+                                className="w-full border border-neutral-200 dark:border-neutral-800 rounded-xl px-3 py-2.5 text-sm bg-transparent dark:text-neutral-100"
+                                required
+                            >
+                                <option value="" disabled>Select Outlet</option>
+                                {outlets.map(o => (
+                                    <option key={o.id} value={o.id}>{o.name}</option>
+                                ))}
+                            </select>
+                            {errors.outlet_id && <p className="text-xs text-red-500">{errors.outlet_id}</p>}
                         </div>
 
                         <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5 space-y-3">
