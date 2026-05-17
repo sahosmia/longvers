@@ -26,7 +26,6 @@ interface Product {
     image: string | null;
     image_url: string | null;
     price: number;
-    stock: number;
 }
 
 interface ProductsProps {
@@ -53,11 +52,10 @@ export default function Products({ products, categories = [], filter, units = []
     const { data, setData, post, put, delete: destroy, reset, errors, processing } = useForm({
         _method: 'POST' as 'POST' | 'PUT',
         name: '',
-        category_id: '',
-        unit_id: '',
+        category_id: '' as string | number,
+        unit_id: '' as string | number,
         image: null as File | null,
         price: '',
-        stock: '0',
     });
 
     const filtered = products.filter((p) =>
@@ -76,11 +74,10 @@ export default function Products({ products, categories = [], filter, units = []
         setData({
             _method: 'PUT',
             name: product.name,
-            category_id: product.category_id.toString(),
-            unit_id: product.unit_id?.toString() || '',
+            category_id: product.category_id,
+            unit_id: product.unit_id || '',
             image: null,
             price: product.price.toString(),
-            stock: product.stock.toString(),
         });
         setShowModal(true);
     };
@@ -147,7 +144,6 @@ export default function Products({ products, categories = [], filter, units = []
                                     <th className="text-left px-5 py-3 font-semibold">ID</th>
                                     <th className="text-left px-3 py-3 font-semibold">Product</th>
                                     <th className="text-left px-3 py-3 font-semibold">Category</th>
-                                    <th className="text-right px-3 py-3 font-semibold">Stock</th>
                                     <th className="text-right px-3 py-3 font-semibold">Price</th>
                                     <th className="text-center px-3 py-3 font-semibold">Actions</th>
                                 </tr>
@@ -173,11 +169,6 @@ export default function Products({ products, categories = [], filter, units = []
                                         <td className="px-3 py-3">
                                             <span className="px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-[10px] font-semibold text-neutral-600 dark:text-neutral-400">
                                                 {p.category?.name}
-                                            </span>
-                                        </td>
-                                        <td className="px-3 py-3 text-right">
-                                            <span className={`font-semibold ${p.stock <= 0 ? 'text-red-500' : (p.stock <= 10 ? 'text-amber-500' : 'text-neutral-700 dark:text-neutral-300')}`}>
-                                                {p.stock} {p.unit?.short_name}
                                             </span>
                                         </td>
                                         <td className="px-3 py-3 text-right font-bold text-neutral-900 dark:text-neutral-100">{formatCurrency(Number(p.price))}</td>
@@ -244,7 +235,7 @@ export default function Products({ products, categories = [], filter, units = []
                                     <SearchableSelect
                                         options={categories.map(c => ({ label: c.name, value: c.id }))}
                                         value={data.category_id}
-                                        onChange={val => setData('category_id', val.toString())}
+                                        onChange={val => setData('category_id', val)}
                                         placeholder="Select Category"
                                         error={errors.category_id}
                                     />
@@ -254,35 +245,22 @@ export default function Products({ products, categories = [], filter, units = []
                                     <SearchableSelect
                                         options={units.map(u => ({ label: u.name, value: u.id }))}
                                         value={data.unit_id}
-                                        onChange={val => setData('unit_id', val.toString())}
+                                        onChange={val => setData('unit_id', val)}
                                         placeholder="Select Unit"
                                         error={errors.unit_id}
                                     />
                                 </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Price (৳)</label>
-                                    <input
-                                        type="number"
-                                        value={data.price}
-                                        onChange={e => setData('price', e.target.value)}
-                                        className="w-full mt-1 border border-neutral-200 dark:border-neutral-800 rounded-xl px-3 py-2 text-sm bg-transparent dark:text-neutral-100"
-                                        required
-                                    />
-                                    {errors.price && <p className="text-xs text-red-500 mt-1">{errors.price}</p>}
-                                </div>
-                                <div>
-                                    <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Stock</label>
-                                    <input
-                                        type="number"
-                                        value={data.stock}
-                                        onChange={e => setData('stock', e.target.value)}
-                                        className="w-full mt-1 border border-neutral-200 dark:border-neutral-800 rounded-xl px-3 py-2 text-sm bg-transparent dark:text-neutral-100"
-                                        required
-                                    />
-                                    {errors.stock && <p className="text-xs text-red-500 mt-1">{errors.stock}</p>}
-                                </div>
+                            <div>
+                                <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Price (৳)</label>
+                                <input
+                                    type="number"
+                                    value={data.price}
+                                    onChange={e => setData('price', e.target.value)}
+                                    className="w-full mt-1 border border-neutral-200 dark:border-neutral-800 rounded-xl px-3 py-2 text-sm bg-transparent dark:text-neutral-100"
+                                    required
+                                />
+                                {errors.price && <p className="text-xs text-red-500 mt-1">{errors.price}</p>}
                             </div>
                             <div className="flex gap-2 pt-2">
                                 <button

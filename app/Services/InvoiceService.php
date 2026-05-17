@@ -42,12 +42,6 @@ class InvoiceService
                     'qty' => $item['qty'],
                     'price' => $item['price'],
                 ]);
-
-                // Update product stock
-                $product = \App\Models\Product::find($item['productId']);
-                if ($product) {
-                    $product->decrement('stock', $item['qty']);
-                }
             }
 
             // Update client stats

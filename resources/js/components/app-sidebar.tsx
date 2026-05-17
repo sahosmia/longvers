@@ -38,14 +38,6 @@ const mainNavItems: NavItem[] = [
                 url: route('products.index'),
             },
             {
-                title: 'Low Stock',
-                url: route('products.index', { filter: 'low_stock' }),
-            },
-            {
-                title: 'Out of Stock',
-                url: route('products.index', { filter: 'out_of_stock' }),
-            },
-            {
                 title: 'Categories',
                 url: route('categories.index'),
             },

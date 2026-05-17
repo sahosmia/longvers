@@ -12,7 +12,6 @@ class Product extends Model
         'unit_id',
         'image',
         'price',
-        'stock',
     ];
 
     protected $appends = ['image_url'];
