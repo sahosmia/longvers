@@ -13,7 +13,7 @@ use Inertia\Inertia;
 
 class ProductController extends Controller
 {
-      public function index()
+    public function index()
     {
         $query = Product::with(['category', 'unit', 'outletPrices'])->latest();
 
@@ -61,5 +61,16 @@ class ProductController extends Controller
         }
         $product->delete();
         return redirect()->back()->with('success', 'Product deleted successfully.');
+    }
+    public function bulkDestroy(\Illuminate\Http\Request $request)
+    {
+        $ids = $request->input('ids');
+        if (empty($ids)) {
+            Product::query()->delete();
+            return redirect()->back()->with('success', 'All products deleted successfully.');
+        }
+
+        Product::whereIn('id', $ids)->delete();
+        return redirect()->back()->with('success', 'Selected products deleted successfully.');
     }
 }

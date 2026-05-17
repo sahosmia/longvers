@@ -22,14 +22,7 @@
                         'name' => 'Inventory Manager',
                         'href' => $this->url->link('extension/module/inventory_module/inventory', 'user_token=' . $this->session->data['user_token'], true),
                     );
-                    $submenus[] = array(
-                        'name' => 'Low Stock Products',
-                        'href' => $this->url->link('extension/module/inventory_module/low_stock', 'user_token=' . $this->session->data['user_token'], true),
-                    );
-                    $submenus[] = array(
-                        'name' => 'Out of Stock Products',
-                        'href' => $this->url->link('extension/module/inventory_module/out_of_stock', 'user_token=' . $this->session->data['user_token'], true),
-                    );
+                   
                     $submenus[] = array(
                         'name' => 'Inventory History',
                         'href' => $this->url->link('extension/module/inventory_module/history', 'user_token=' . $this->session->data['user_token'], true),

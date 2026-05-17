@@ -93,4 +93,16 @@ class InvoiceController extends Controller
         $pdf = Pdf::loadView('invoices.pdf', compact('invoice'));
         return $pdf->stream('invoice-' . $invoice->invoice_uuid . '.pdf');
     }
+
+     public function bulkDestroy(\Illuminate\Http\Request $request)
+    {
+        $ids = $request->input('ids');
+        if (empty($ids)) {
+            Invoice::query()->delete();
+            return redirect()->back()->with('success', 'All invoices deleted successfully.');
+        }
+
+        Invoice::whereIn('id', $ids)->delete();
+        return redirect()->back()->with('success', 'Selected invoices deleted successfully.');
+    }
 }

@@ -1,14 +1,8 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, router } from '@inertiajs/react';
 import { useState } from "react";
 import { Search, Plus, Trash2, Edit3, X, MapPin } from "lucide-react";
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
-
-interface Outlet {
-    id: number;
-    name: string;
-    location: string;
-}
+import { type BreadcrumbItem, Outlet } from '@/types';
 
 interface OutletsProps {
     outlets: Outlet[];
@@ -25,6 +19,7 @@ export default function Outlets({ outlets }: OutletsProps) {
     const [search, setSearch] = useState("");
     const [showModal, setShowModal] = useState(false);
     const [editingOutlet, setEditingOutlet] = useState<Outlet | null>(null);
+    const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
     const { data, setData, post, put, delete: destroy, reset, errors, processing } = useForm({
         name: '',
@@ -72,6 +67,34 @@ export default function Outlets({ outlets }: OutletsProps) {
         }
     };
 
+  const handleBulkDelete = () => {
+        const isDeleteAll = selectedIds.length === 0;
+        const message = isDeleteAll
+            ? 'Are you sure you want to delete ALL outlets?'
+            : `Are you sure you want to delete ${selectedIds.length} selected outlets?`;
+
+        if (confirm(message)) {
+            router.delete(route('outlets.bulk-destroy'), {
+                data: { ids: selectedIds },
+                onSuccess: () => setSelectedIds([]),
+            });
+        }
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedIds.length === filtered.length) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(filtered.map(o => o.id));
+        }
+    };
+
+    const toggleSelect = (id: number) => {
+        setSelectedIds(prev =>
+            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+        );
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Outlets - Laurnverse" />
@@ -81,12 +104,21 @@ export default function Outlets({ outlets }: OutletsProps) {
                         <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">Outlets</h1>
                         <p className="text-sm text-neutral-500 dark:text-neutral-400">{outlets.length} items</p>
                     </div>
-                    <button
-                        onClick={openCreateModal}
-                        className="flex items-center gap-2 bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-lg"
-                    >
-                        <Plus className="w-4 h-4" /> Add Outlet
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={handleBulkDelete}
+                            className="flex items-center gap-2 bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 px-4 py-2.5 rounded-xl text-sm font-semibold border border-red-100 dark:border-red-800/50 transition-colors"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                            {selectedIds.length > 0 ? `Delete Selected (${selectedIds.length})` : 'Delete All'}
+                        </button>
+                        <button
+                            onClick={openCreateModal}
+                            className="flex items-center gap-2 bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-lg"
+                        >
+                            <Plus className="w-4 h-4" /> Add Outlet
+                        </button>
+                    </div>
                 </div>
 
                 <div className="relative">
@@ -105,7 +137,15 @@ export default function Outlets({ outlets }: OutletsProps) {
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="bg-neutral-50 dark:bg-neutral-800/50 text-neutral-500 text-xs uppercase tracking-wider">
-                                    <th className="text-left px-5 py-3 font-semibold">ID</th>
+                                    <th className="px-5 py-3 text-center">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedIds.length === filtered.length && filtered.length > 0}
+                                            onChange={toggleSelectAll}
+                                            className="rounded border-neutral-300 dark:border-neutral-700 text-blue-600 focus:ring-blue-500"
+                                        />
+                                    </th>
+                                    <th className="text-left px-3 py-3 font-semibold">ID</th>
                                     <th className="text-left px-3 py-3 font-semibold">Name</th>
                                     <th className="text-left px-3 py-3 font-semibold">Location</th>
                                     <th className="text-center px-3 py-3 font-semibold">Actions</th>
@@ -113,8 +153,16 @@ export default function Outlets({ outlets }: OutletsProps) {
                             </thead>
                             <tbody>
                                 {filtered.map((o) => (
-                                    <tr key={o.id} className="border-b border-neutral-50 dark:border-neutral-800 hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors">
-                                        <td className="px-5 py-3 font-mono text-xs text-neutral-500">{o.id}</td>
+                                    <tr key={o.id} className={`border-b border-neutral-50 dark:border-neutral-800 hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors ${selectedIds.includes(o.id) ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}>
+                                        <td className="px-5 py-3 text-center">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedIds.includes(o.id)}
+                                                onChange={() => toggleSelect(o.id)}
+                                                className="rounded border-neutral-300 dark:border-neutral-700 text-blue-600 focus:ring-blue-500"
+                                            />
+                                        </td>
+                                        <td className="px-3 py-3 font-mono text-xs text-neutral-500">{o.id}</td>
                                         <td className="px-3 py-3 font-medium text-neutral-800 dark:text-neutral-200">{o.name}</td>
                                         <td className="px-3 py-3">
                                             <div className="flex items-center gap-1.5 text-neutral-600 dark:text-neutral-400">
@@ -152,6 +200,7 @@ export default function Outlets({ outlets }: OutletsProps) {
                                     value={data.name}
                                     onChange={e => setData('name', e.target.value)}
                                     className="w-full mt-1 border border-neutral-200 dark:border-neutral-800 rounded-xl px-3 py-2 text-sm bg-transparent dark:text-neutral-100"
+                                    placeholder="Enter outlet name"
                                     required
                                 />
                                 {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
@@ -163,6 +212,7 @@ export default function Outlets({ outlets }: OutletsProps) {
                                     value={data.location}
                                     onChange={e => setData('location', e.target.value)}
                                     className="w-full mt-1 border border-neutral-200 dark:border-neutral-800 rounded-xl px-3 py-2 text-sm bg-transparent dark:text-neutral-100"
+                                    placeholder="Enter physical address"
                                 />
                                 {errors.location && <p className="text-xs text-red-500 mt-1">{errors.location}</p>}
                             </div>

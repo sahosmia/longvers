@@ -37,4 +37,25 @@ class OutletController extends Controller
         $outlet->delete();
         return redirect()->back()->with('success', 'Outlet deleted successfully.');
     }
+
+    public function bulkDestroy(\Illuminate\Http\Request $request)
+    {
+        $ids = $request->input('ids');
+        if (empty($ids)) {
+            // Check for associated invoices before deleting all
+            if (\App\Models\Invoice::exists()) {
+                 return redirect()->back()->with('error', 'Cannot delete all outlets as some have associated invoices.');
+            }
+            Outlet::query()->delete();
+            return redirect()->back()->with('success', 'All outlets deleted successfully.');
+        }
+
+        $outletsWithInvoices = Outlet::whereIn('id', $ids)->whereHas('invoices')->count();
+        if ($outletsWithInvoices > 0) {
+            return redirect()->back()->with('error', 'Cannot delete some outlets as they have associated invoices.');
+        }
+
+        Outlet::whereIn('id', $ids)->delete();
+        return redirect()->back()->with('success', 'Selected outlets deleted successfully.');
+    }
 }

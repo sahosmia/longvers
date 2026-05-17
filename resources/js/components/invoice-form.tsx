@@ -5,38 +5,7 @@ import { SearchableSelect } from '@/components/ui/searchable-select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-
-export interface Category {
-    id: number;
-    name: string;
-}
-
-interface Outlet {
-    id: number;
-    name: string;
-}
-
-interface OutletProductPrice {
-    outlet_id: number;
-    price: number;
-}
-
-export interface Product {
-    id: number;
-    name: string;
-    category_id: number;
-    category: Category;
-    price: number;
-    outlet_prices?: OutletProductPrice[];
-}
-
-export interface Client {
-    id: number;
-    name: string;
-    phone: string;
-}
-
-
+import { Category, Outlet, Product, Client } from '@/types';
 
 export interface InvoiceItem {
     productId: number;
@@ -387,7 +356,7 @@ export default function InvoiceForm({ invoice, products, clients, categories, ou
                                 setData('outlet_id', newOutletId);
 
                                 // Optionally update prices of existing items when outlet changes
-                                const updatedItems = data.items.map((item: any) => {
+                                const updatedItems = data.items.map((item: InvoiceItem) => {
                                     const product = products.find(p => p.id === item.productId);
                                     if (product) {
                                         const outletPrice = product.outlet_prices?.find(op => op.outlet_id === Number(newOutletId))?.price;
@@ -395,7 +364,7 @@ export default function InvoiceForm({ invoice, products, clients, categories, ou
                                     }
                                     return item;
                                 });
-                                const newTotal = updatedItems.reduce((s: number, i: any) => s + i.price * i.qty, 0);
+                                const newTotal = updatedItems.reduce((s: number, i: InvoiceItem) => s + i.price * i.qty, 0);
                                 setData(d => ({
                                     ...d,
                                     outlet_id: newOutletId,
@@ -490,6 +459,7 @@ export default function InvoiceForm({ invoice, products, clients, categories, ou
                             value={data.date}
                             onChange={e => setData('date', e.target.value)}
                             className="w-full border border-neutral-200 dark:border-neutral-800 rounded-xl px-3 py-2.5 text-sm bg-transparent dark:text-neutral-100"
+                            placeholder="Select Date"
                             required
                         />
                         <select

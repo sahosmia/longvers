@@ -16,7 +16,6 @@ beforeEach(function () {
     $this->product = Product::create([
         'name' => 'Test Product',
         'price' => 100,
-        'stock' => 50,
         'category_id' => $this->category->id,
         'unit_id' => $this->unit->id,
     ]);
