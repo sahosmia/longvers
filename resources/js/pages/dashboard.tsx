@@ -65,7 +65,7 @@ export default function Dashboard({ stats, top_clients, dailyRevenue }: Dashboar
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Dashboard - Laurnverse" />
+            <Head title="Dashboard" />
             <div className="p-4 space-y-6">
                 <div>
                     <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">Dashboard</h1>

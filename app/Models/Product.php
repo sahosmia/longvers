@@ -21,6 +21,11 @@ class Product extends Model
         return $this->image ? asset('storage/' . $this->image) : null;
     }
 
+     public function outletPrices()
+    {
+        return $this->hasMany(OutletProductPrice::class);
+    }
+
     public function category()
     {
         return $this->belongsTo(Category::class);

@@ -85,7 +85,7 @@ export default function InvoiceHistory({ invoices }: InvoiceHistoryProps) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Laurnverse - History" />
+            <Head title="History" />
             <div className="p-4 space-y-4">
                 <div className="flex items-center justify-between">
                     <div>

@@ -11,12 +11,23 @@ export interface Category {
     name: string;
 }
 
+interface Outlet {
+    id: number;
+    name: string;
+}
+
+interface OutletProductPrice {
+    outlet_id: number;
+    price: number;
+}
+
 export interface Product {
     id: number;
     name: string;
     category_id: number;
     category: Category;
     price: number;
+    outlet_prices?: OutletProductPrice[];
 }
 
 export interface Client {
@@ -25,10 +36,7 @@ export interface Client {
     phone: string;
 }
 
-export interface Outlet {
-    id: number;
-    name: string;
-}
+
 
 export interface InvoiceItem {
     productId: number;
@@ -128,12 +136,17 @@ export default function InvoiceForm({ invoice, products, clients, categories, ou
     const addItem = (product: Product) => {
         const existingIdx = data.items.findIndex((i) => i.productId === product.id);
         let newItems = [...data.items];
+        const outletPrice = product.outlet_prices?.find(op => op.outlet_id === Number(data.outlet_id))?.price;
+        const price = outletPrice !== undefined ? Number(outletPrice) : Number(product.price);
 
         if (existingIdx > -1) {
             newItems[existingIdx].qty += 1;
+            newItems[existingIdx].price = price; // Update price in case outlet changed
+
         } else {
-            newItems.push({ productId: product.id, name: product.name, price: Number(product.price), qty: 1 });
+            newItems.push({ productId: product.id, name: product.name, price: price, qty: 1 });
         }
+
 
         const { total, due } = calculateTotals(newItems, data.paid, data.discount_type, data.discount_amount);
         setData(d => ({
@@ -259,9 +272,8 @@ export default function InvoiceForm({ invoice, products, clients, categories, ou
                                     key={c}
                                     type="button"
                                     onClick={() => { setSelectedCategory(c); setShowDropdown(true); }}
-                                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
-                                        selectedCategory === c ? "bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900" : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-400"
-                                    }`}
+                                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${selectedCategory === c ? "bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900" : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-400"
+                                        }`}
                                 >
                                     {c}
                                 </button>
@@ -293,7 +305,9 @@ export default function InvoiceForm({ invoice, products, clients, categories, ou
                                                     <span className="text-sm font-medium text-neutral-800 dark:text-neutral-200">{p.name}</span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    <span className="text-sm font-bold text-blue-600">{formatCurrency(Number(p.price))}</span>
+                                                    <span className="text-sm font-bold text-blue-600">
+                                                        {formatCurrency(Number(p.outlet_prices?.find(op => op.outlet_id === Number(data.outlet_id))?.price ?? p.price))}
+                                                    </span>
                                                 </div>
                                             </button>
                                         ))
@@ -364,17 +378,41 @@ export default function InvoiceForm({ invoice, products, clients, categories, ou
                 </div>
 
                 <div className="space-y-4">
-                    <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5 space-y-4">
-                        <h3 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 flex items-center gap-2">
-                            <Building2 className="w-4 h-4" /> Outlet
-                        </h3>
-                        <SearchableSelect
-                            options={outletOptions}
+                    <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5 space-y-3">
+                        <h3 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 flex items-center gap-2"><Package className="w-4 h-4" /> Outlet</h3>
+                        <select
                             value={data.outlet_id}
-                            onChange={(val) => setData('outlet_id', Number(val))}
-                            placeholder="Select Outlet"
-                            error={errors.outlet_id}
-                        />
+                            onChange={e => {
+                                const newOutletId = e.target.value;
+                                setData('outlet_id', newOutletId);
+
+                                // Optionally update prices of existing items when outlet changes
+                                const updatedItems = data.items.map((item: any) => {
+                                    const product = products.find(p => p.id === item.productId);
+                                    if (product) {
+                                        const outletPrice = product.outlet_prices?.find(op => op.outlet_id === Number(newOutletId))?.price;
+                                        return { ...item, price: outletPrice !== undefined ? Number(outletPrice) : Number(product.price) };
+                                    }
+                                    return item;
+                                });
+                                const newTotal = updatedItems.reduce((s: number, i: any) => s + i.price * i.qty, 0);
+                                setData(d => ({
+                                    ...d,
+                                    outlet_id: newOutletId,
+                                    items: updatedItems,
+                                    total: newTotal,
+                                    due: newTotal - (Number(d.paid) || 0)
+                                }));
+                            }}
+                            className="w-full border border-neutral-200 dark:border-neutral-800 rounded-xl px-3 py-2.5 text-sm bg-transparent dark:text-neutral-100"
+                            required
+                        >
+                            <option value="" disabled>Select Outlet</option>
+                            {outlets.map(o => (
+                                <option key={o.id} value={o.id}>{o.name}</option>
+                            ))}
+                        </select>
+                        {errors.outlet_id && <p className="text-xs text-red-500">{errors.outlet_id}</p>}
                     </div>
 
                     <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5 space-y-4">
@@ -454,7 +492,7 @@ export default function InvoiceForm({ invoice, products, clients, categories, ou
                             className="w-full border border-neutral-200 dark:border-neutral-800 rounded-xl px-3 py-2.5 text-sm bg-transparent dark:text-neutral-100"
                             required
                         />
-                         <select
+                        <select
                             value={data.status}
                             onChange={e => setData('status', e.target.value)}
                             className="w-full border border-neutral-200 dark:border-neutral-800 rounded-xl px-3 py-2.5 text-sm bg-transparent dark:text-neutral-100"
@@ -466,60 +504,60 @@ export default function InvoiceForm({ invoice, products, clients, categories, ou
                     </div>
 
                     <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5 space-y-3">
-                            <h3 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 flex items-center gap-2"><CreditCard className="w-4 h-4" /> Discount & Payment</h3>
-                            <div className="space-y-3">
-                                <div className="flex gap-2">
-                                    {['Fixed', 'Percentage'].map(t => (
-                                        <button
-                                            key={t}
-                                            type="button"
-                                            onClick={() => handleDiscountTypeChange(t)}
-                                            className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold border uppercase tracking-wider ${data.discount_type === t ? 'bg-amber-50 border-amber-300 text-amber-600' : 'border-neutral-200 dark:border-neutral-800 text-neutral-500'}`}
-                                        >
-                                            {t}
-                                        </button>
-                                    ))}
-                                </div>
-                                <Input
-                                    type="number"
-                                    placeholder="Discount Amount"
-                                    value={data.discount_amount}
-                                    onChange={e => handleDiscountAmountChange(e.target.value)}
-                                    className="h-9 text-xs"
-                                />
+                        <h3 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 flex items-center gap-2"><CreditCard className="w-4 h-4" /> Discount & Payment</h3>
+                        <div className="space-y-3">
+                            <div className="flex gap-2">
+                                {['Fixed', 'Percentage'].map(t => (
+                                    <button
+                                        key={t}
+                                        type="button"
+                                        onClick={() => handleDiscountTypeChange(t)}
+                                        className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold border uppercase tracking-wider ${data.discount_type === t ? 'bg-amber-50 border-amber-300 text-amber-600' : 'border-neutral-200 dark:border-neutral-800 text-neutral-500'}`}
+                                    >
+                                        {t}
+                                    </button>
+                                ))}
+                            </div>
+                            <Input
+                                type="number"
+                                placeholder="Discount Amount"
+                                value={data.discount_amount}
+                                onChange={e => handleDiscountAmountChange(e.target.value)}
+                                className="h-9 text-xs"
+                            />
                         </div>
 
-                            <div className="pt-2 border-t border-neutral-100 dark:border-neutral-800">
-                                <div className="flex gap-2 mb-3">
-                                    {['Cash', 'Bkash', 'Bank'].map(m => (
-                                        <button
-                                            key={m}
-                                            type="button"
-                                            onClick={() => setData('method', m)}
-                                            className={`flex-1 py-2 rounded-xl text-xs font-semibold border ${data.method === m ? 'bg-blue-50 border-blue-300 text-blue-600' : 'border-neutral-200 dark:border-neutral-800 text-neutral-500'}`}
-                                        >
-                                            {m}
-                                        </button>
-                                    ))}
-                                </div>
-                                <Input
-                                    type="number"
-                                    placeholder="Paid Amount"
-                                    value={data.paid}
-                                    onChange={e => handlePaidChange(e.target.value)}
-                                    className="h-9 text-xs"
-                                />
+                        <div className="pt-2 border-t border-neutral-100 dark:border-neutral-800">
+                            <div className="flex gap-2 mb-3">
+                                {['Cash', 'Bkash', 'Bank'].map(m => (
+                                    <button
+                                        key={m}
+                                        type="button"
+                                        onClick={() => setData('method', m)}
+                                        className={`flex-1 py-2 rounded-xl text-xs font-semibold border ${data.method === m ? 'bg-blue-50 border-blue-300 text-blue-600' : 'border-neutral-200 dark:border-neutral-800 text-neutral-500'}`}
+                                    >
+                                        {m}
+                                    </button>
+                                ))}
                             </div>
+                            <Input
+                                type="number"
+                                placeholder="Paid Amount"
+                                value={data.paid}
+                                onChange={e => handlePaidChange(e.target.value)}
+                                className="h-9 text-xs"
+                            />
+                        </div>
                     </div>
 
                     <div className="bg-neutral-900 dark:bg-neutral-100 rounded-2xl p-5 text-white dark:text-neutral-900">
                         <h3 className="text-sm font-semibold text-neutral-400 dark:text-neutral-600 mb-4">Invoice Summary</h3>
                         <div className="space-y-2 text-sm">
-                                <div className="flex justify-between"><span>Subtotal</span><span>{formatCurrency(data.items.reduce((s, i) => s + i.price * i.qty, 0))}</span></div>
-                                <div className="flex justify-between text-amber-400">
-                                    <span>Discount ({data.discount_type})</span>
-                                    <span>{data.discount_type === 'Percentage' ? `${data.discount_amount}%` : formatCurrency(Number(data.discount_amount))}</span>
-                                </div>
+                            <div className="flex justify-between"><span>Subtotal</span><span>{formatCurrency(data.items.reduce((s, i) => s + i.price * i.qty, 0))}</span></div>
+                            <div className="flex justify-between text-amber-400">
+                                <span>Discount ({data.discount_type})</span>
+                                <span>{data.discount_type === 'Percentage' ? `${data.discount_amount}%` : formatCurrency(Number(data.discount_amount))}</span>
+                            </div>
                             <div className="flex justify-between text-emerald-400"><span>Paid</span><span>{formatCurrency(Number(data.paid) || 0)}</span></div>
                             <div className="flex justify-between text-red-400"><span>Due</span><span>{formatCurrency(data.due)}</span></div>
                             <div className="border-t border-white/10 dark:border-neutral-200 pt-2 mt-2 flex justify-between text-lg font-bold">

@@ -48,7 +48,7 @@ export default function Reports({ monthlyData, categorySplit, totalServices }: R
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Reports - Laurnverse" />
+            <Head title="Reports" />
             <div className="p-4 space-y-6">
                 <div>
                     <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">Reports & Analytics</h1>

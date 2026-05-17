@@ -79,7 +79,7 @@ export default function InvoiceDetail({ invoice }: InvoiceDetailProps) {
                             <p className="text-neutral-500 font-mono mt-1">{invoice.id}</p>
                         </div>
                         <div className="text-right">
-                            <h2 className="text-xl font-bold">Laurnverse CRM</h2>
+                            <h2 className="text-xl font-bold">Laurnverse</h2>
                             <p className="text-sm text-neutral-500">Dhaka, Bangladesh</p>
                             <p className="text-sm text-neutral-500">Phone: +880 1234 567890</p>
                         </div>

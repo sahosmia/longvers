@@ -20,7 +20,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function CreateInvoice({ products, clients, categories, outlets }: CreateInvoiceProps) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Create Invoice - Laurnverse" />
+            <Head title="Create Invoice" />
             <InvoiceForm
                 products={products}
                 clients={clients}

@@ -15,7 +15,7 @@ class DemoDataSeeder extends Seeder
 {
     public function run(): void
     {
-        $outlet = Outlet::create(['name' => 'Main Outlet', 'address' => 'Dhaka']);
+        $outlet = Outlet::create(['name' => 'Main Outlet', 'location' => 'Dhaka']);
 
         $categories = ['Gents', 'Ladies', 'Kids', 'Household', 'Others'];
         $categoryModels = [];

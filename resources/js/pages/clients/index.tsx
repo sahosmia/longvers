@@ -82,7 +82,7 @@ export default function Clients({ clients }: ClientsProps) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Laurnverse - Clients" />
+            <Head title="Clients" />
             <div className="p-4 space-y-4">
                 <div className="flex items-center justify-between">
                     <div>

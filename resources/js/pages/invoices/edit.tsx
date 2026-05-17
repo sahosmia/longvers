@@ -25,7 +25,7 @@ export default function EditInvoice({ invoice, products, clients, categories, ou
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Edit Invoice ${invoice.invoice_uuid} - Laurnverse`} />
+            <Head title={`Edit Invoice ${invoice.invoice_uuid}`} />
             <InvoiceForm
                 invoice={invoice}
                 products={products}

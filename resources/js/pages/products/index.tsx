@@ -16,6 +16,18 @@ interface Unit {
     short_name: string;
 }
 
+interface Outlet {
+    id: number;
+    name: string;
+}
+
+interface OutletProductPrice {
+    id: number;
+    outlet_id: number;
+    product_id: number;
+    price: number;
+}
+
 interface Product {
     id: number;
     name: string;
@@ -23,15 +35,15 @@ interface Product {
     category: Category;
     unit_id?: number;
     unit?: Unit;
-    image: string | null;
-    image_url: string | null;
     price: number;
+    outlet_prices?: OutletProductPrice[];
 }
 
 interface ProductsProps {
     products: Product[];
     categories: Category[];
     units: Unit[];
+    outlets: Outlet[];
     filter?: string;
 }
 
@@ -44,18 +56,17 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const formatCurrency = (n: number) => `৳${n.toLocaleString("en-BD")}`;
 
-export default function Products({ products, categories = [], filter, units = [] }: ProductsProps) {
+export default function Products({ products, categories, filter, units, outlets }: ProductsProps) {
     const [search, setSearch] = useState("");
     const [showModal, setShowModal] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
     const { data, setData, post, put, delete: destroy, reset, errors, processing } = useForm({
-        _method: 'POST' as 'POST' | 'PUT',
         name: '',
-        category_id: '' as string | number,
-        unit_id: '' as string | number,
-        image: null as File | null,
+        category_id: '',
+        unit_id: '',
         price: '',
+        outlet_prices: [] as { outlet_id: number; price: string }[],
     });
 
     const filtered = products.filter((p) =>
@@ -65,19 +76,21 @@ export default function Products({ products, categories = [], filter, units = []
     const openCreateModal = () => {
         setEditingProduct(null);
         reset();
-        setData('_method', 'POST');
+        setData('outlet_prices', outlets.map(o => ({ outlet_id: o.id, price: '' })));
         setShowModal(true);
     };
 
     const openEditModal = (product: Product) => {
         setEditingProduct(product);
         setData({
-            _method: 'PUT',
             name: product.name,
-            category_id: product.category_id,
-            unit_id: product.unit_id || '',
-            image: null,
+            category_id: product.category_id.toString(),
+            unit_id: product.unit_id?.toString() || '',
             price: product.price.toString(),
+            outlet_prices: outlets.map(o => {
+                const existing = product.outlet_prices?.find(op => op.outlet_id === o.id);
+                return { outlet_id: o.id, price: existing ? existing.price.toString() : '' };
+            }),
         });
         setShowModal(true);
     };
@@ -85,9 +98,7 @@ export default function Products({ products, categories = [], filter, units = []
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (editingProduct) {
-            // Using post with _method: 'PUT' for file uploads on update
-            post(route('products.update', editingProduct.id), {
-                forceFormData: true,
+            put(route('products.update', editingProduct.id), {
                 onSuccess: () => setShowModal(false),
             });
         } else {
@@ -106,15 +117,14 @@ export default function Products({ products, categories = [], filter, units = []
         }
     };
 
-    const pageTitle = filter === 'low_stock' ? 'Low Stock Products' : (filter === 'out_of_stock' ? 'Out of Stock Products' : 'Products & Services');
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`${pageTitle} - Laurnverse`} />
+            <Head title="Products - Laurnverse" />
             <div className="p-4 space-y-4">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">{pageTitle}</h1>
+                        <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">Products</h1>
                         <p className="text-sm text-neutral-500 dark:text-neutral-400">{products.length} items</p>
                     </div>
                     <button
@@ -142,7 +152,7 @@ export default function Products({ products, categories = [], filter, units = []
                             <thead>
                                 <tr className="bg-neutral-50 dark:bg-neutral-800/50 text-neutral-500 text-xs uppercase tracking-wider">
                                     <th className="text-left px-5 py-3 font-semibold">ID</th>
-                                    <th className="text-left px-3 py-3 font-semibold">Product</th>
+                                    <th className="text-left px-3 py-3 font-semibold">Name</th>
                                     <th className="text-left px-3 py-3 font-semibold">Category</th>
                                     <th className="text-right px-3 py-3 font-semibold">Price</th>
                                     <th className="text-center px-3 py-3 font-semibold">Actions</th>
@@ -152,20 +162,7 @@ export default function Products({ products, categories = [], filter, units = []
                                 {filtered.map((p) => (
                                     <tr key={p.id} className="border-b border-neutral-50 dark:border-neutral-800 hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors">
                                         <td className="px-5 py-3 font-mono text-xs text-neutral-500">{p.id}</td>
-                                        <td className="px-3 py-3">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex-shrink-0 overflow-hidden border border-neutral-200 dark:border-neutral-800">
-                                                    {p.image_url ? (
-                                                        <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
-                                                    ) : (
-                                                        <div className="w-full h-full flex items-center justify-center text-neutral-400 font-bold text-xs uppercase">
-                                                            {p.name.charAt(0)}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <span className="font-medium text-neutral-800 dark:text-neutral-200">{p.name}</span>
-                                            </div>
-                                        </td>
+                                        <td className="px-3 py-3 font-medium text-neutral-800 dark:text-neutral-200">{p.name}</td>
                                         <td className="px-3 py-3">
                                             <span className="px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-[10px] font-semibold text-neutral-600 dark:text-neutral-400">
                                                 {p.category?.name}
@@ -196,29 +193,6 @@ export default function Products({ products, categories = [], filter, units = []
                         </div>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
-                                <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Product Image</label>
-                                <div className="mt-1 flex items-center gap-4">
-                                    <div className="w-16 h-16 rounded-xl bg-neutral-100 dark:bg-neutral-800 flex-shrink-0 overflow-hidden border border-neutral-200 dark:border-neutral-800">
-                                        {data.image ? (
-                                            <img src={URL.createObjectURL(data.image)} className="w-full h-full object-cover" />
-                                        ) : (editingProduct?.image_url ? (
-                                            <img src={editingProduct.image_url} className="w-full h-full object-cover" />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center text-neutral-400">
-                                                <Plus className="w-6 h-6" />
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <input
-                                        type="file"
-                                        onChange={e => setData('image', e.target.files?.[0] || null)}
-                                        className="text-xs text-neutral-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-neutral-800 dark:file:text-neutral-300"
-                                        accept="image/*"
-                                    />
-                                </div>
-                                {errors.image && <p className="text-xs text-red-500 mt-1">{errors.image}</p>}
-                            </div>
-                            <div>
                                 <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Product Name</label>
                                 <input
                                     type="text"
@@ -235,7 +209,7 @@ export default function Products({ products, categories = [], filter, units = []
                                     <SearchableSelect
                                         options={categories.map(c => ({ label: c.name, value: c.id }))}
                                         value={data.category_id}
-                                        onChange={val => setData('category_id', val)}
+                                        onChange={val => setData('category_id', val.toString())}
                                         placeholder="Select Category"
                                         error={errors.category_id}
                                     />
@@ -245,23 +219,53 @@ export default function Products({ products, categories = [], filter, units = []
                                     <SearchableSelect
                                         options={units.map(u => ({ label: u.name, value: u.id }))}
                                         value={data.unit_id}
-                                        onChange={val => setData('unit_id', val)}
+                                        onChange={val => setData('unit_id', val.toString())}
                                         placeholder="Select Unit"
                                         error={errors.unit_id}
                                     />
                                 </div>
                             </div>
-                            <div>
-                                <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Price (৳)</label>
-                                <input
-                                    type="number"
-                                    value={data.price}
-                                    onChange={e => setData('price', e.target.value)}
-                                    className="w-full mt-1 border border-neutral-200 dark:border-neutral-800 rounded-xl px-3 py-2 text-sm bg-transparent dark:text-neutral-100"
-                                    required
-                                />
-                                {errors.price && <p className="text-xs text-red-500 mt-1">{errors.price}</p>}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Base Price (৳)</label>
+                                    <input
+                                        type="number"
+                                        value={data.price}
+                                        onChange={e => setData('price', e.target.value)}
+                                        className="w-full mt-1 border border-neutral-200 dark:border-neutral-800 rounded-xl px-3 py-2 text-sm bg-transparent dark:text-neutral-100"
+                                        required
+                                    />
+                                    {errors.price && <p className="text-xs text-red-500 mt-1">{errors.price}</p>}
+                                </div>
+                               
                             </div>
+                            <div className="space-y-3">
+                                <h4 className="text-sm font-bold text-neutral-900 dark:text-neutral-100">Outlet-wise Prices (Optional)</h4>
+                                <div className="grid grid-cols-2 gap-4">
+                                    {outlets.map((outlet, idx) => (
+                                        <div key={outlet.id}>
+                                            <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">{outlet.name} Price</label>
+                                            <input
+                                                type="number"
+                                                value={data.outlet_prices.find(op => op.outlet_id === outlet.id)?.price || ''}
+                                                onChange={e => {
+                                                    const newOutletPrices = [...data.outlet_prices];
+                                                    const opIdx = newOutletPrices.findIndex(op => op.outlet_id === outlet.id);
+                                                    if (opIdx > -1) {
+                                                        newOutletPrices[opIdx].price = e.target.value;
+                                                    } else {
+                                                        newOutletPrices.push({ outlet_id: outlet.id, price: e.target.value });
+                                                    }
+                                                    setData('outlet_prices', newOutletPrices);
+                                                }}
+                                                className="w-full mt-1 border border-neutral-200 dark:border-neutral-800 rounded-xl px-3 py-2 text-sm bg-transparent dark:text-neutral-100"
+                                                placeholder="Same as base"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
                             <div className="flex gap-2 pt-2">
                                 <button
                                     type="submit"

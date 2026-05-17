@@ -6,7 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Outlet extends Model
 {
-    protected $fillable = ['name', 'address'];
+    protected $fillable = ['name', 'location'];
+
+    public function productPrices()
+    {
+        return $this->hasMany(OutletProductPrice::class);
+    }
 
     public function invoices()
     {

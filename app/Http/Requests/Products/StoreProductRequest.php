@@ -19,6 +19,9 @@ class StoreProductRequest extends FormRequest
             'unit_id' => 'nullable|exists:units,id',
             'image' => 'nullable|image|max:2048',
             'price' => 'required|numeric|min:0',
+            'outlet_prices' => 'nullable|array',
+            'outlet_prices.*.outlet_id' => 'required|exists:outlets,id',
+            'outlet_prices.*.price' => 'required|numeric|min:0',
         ];
     }
 }
