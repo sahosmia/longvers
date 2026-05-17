@@ -76,6 +76,8 @@ export interface Product {
     category?: Category;
     unit_id?: number;
     unit?: Unit;
+     image: string | null;
+    image_url: string | null;
     price: number;
     outlet_prices?: OutletProductPrice[];
 }

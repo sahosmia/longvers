@@ -16,6 +16,10 @@ test('it can see products', function () {
 
     $response = $this->actingAs($user)->get('/products');
 
+    if ($response->exception) {
+        throw $response->exception;
+    }
+
     $response->assertInertia(fn (Assert $page) => $page
         ->has('products', 1)
         ->where('products.0.name', 'Product 1')

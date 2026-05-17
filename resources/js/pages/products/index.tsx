@@ -30,8 +30,10 @@ export default function Products({ products, categories, filter, units, outlets 
 
     const { data, setData, post, put, delete: destroy, reset, errors, processing } = useForm({
         name: '',
-        category_id: '',
-        unit_id: '',
+        category_id: null as number | null,
+        unit_id: null as number | null,
+                image: null as File | null,
+
         price: '',
         outlet_prices: [] as { outlet_id: number; price: string }[],
     });
@@ -51,8 +53,9 @@ export default function Products({ products, categories, filter, units, outlets 
         setEditingProduct(product);
         setData({
             name: product.name,
-            category_id: product.category_id.toString(),
-            unit_id: product.unit_id?.toString() || '',
+            category_id: product.category_id,
+            unit_id: product.unit_id || null,
+            image: null,
             price: product.price.toString(),
             outlet_prices: outlets.map(o => {
                 const existing = product.outlet_prices?.find(op => op.outlet_id === o.id);
@@ -182,7 +185,20 @@ export default function Products({ products, categories, filter, units, outlets 
                                             />
                                         </td>
                                         <td className="px-3 py-3 font-mono text-xs text-neutral-500">{p.id}</td>
-                                        <td className="px-3 py-3 font-medium text-neutral-800 dark:text-neutral-200">{p.name}</td>
+                                         <td className="px-3 py-3">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex-shrink-0 overflow-hidden border border-neutral-200 dark:border-neutral-800">
+                                                    {p.image_url ? (
+                                                        <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center text-neutral-400 font-bold text-xs uppercase">
+                                                            {p.name.charAt(0)}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <span className="font-medium text-neutral-800 dark:text-neutral-200">{p.name}</span>
+                                            </div>
+                                        </td>
                                         <td className="px-3 py-3">
                                             <span className="px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-[10px] font-semibold text-neutral-600 dark:text-neutral-400">
                                                 {p.category?.name}
@@ -213,6 +229,29 @@ export default function Products({ products, categories, filter, units, outlets 
                         </div>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
+                                <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Product Image</label>
+                                <div className="mt-1 flex items-center gap-4">
+                                    <div className="w-16 h-16 rounded-xl bg-neutral-100 dark:bg-neutral-800 flex-shrink-0 overflow-hidden border border-neutral-200 dark:border-neutral-800">
+                                        {data.image ? (
+                                            <img src={URL.createObjectURL(data.image)} className="w-full h-full object-cover" />
+                                        ) : (editingProduct?.image_url ? (
+                                            <img src={editingProduct.image_url} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-neutral-400">
+                                                <Plus className="w-6 h-6" />
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <input
+                                        type="file"
+                                        onChange={e => setData('image', e.target.files?.[0] || null)}
+                                        className="text-xs text-neutral-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-neutral-800 dark:file:text-neutral-300"
+                                        accept="image/*"
+                                    />
+                                </div>
+                                {errors.image && <p className="text-xs text-red-500 mt-1">{errors.image}</p>}
+                            </div>
+                            <div>
                                 <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Product Name</label>
                                 <input
                                     type="text"
@@ -229,8 +268,8 @@ export default function Products({ products, categories, filter, units, outlets 
                                     <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Category</label>
                                     <SearchableSelect
                                         options={categories.map(c => ({ label: c.name, value: c.id }))}
-                                        value={data.category_id}
-                                        onChange={val => setData('category_id', val.toString())}
+                                        value={data.category_id || ''}
+                                        onChange={val => setData('category_id', Number(val))}
                                         placeholder="Select Category"
                                         error={errors.category_id}
                                     />
@@ -239,8 +278,8 @@ export default function Products({ products, categories, filter, units, outlets 
                                     <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Unit</label>
                                     <SearchableSelect
                                         options={units.map(u => ({ label: u.name, value: u.id }))}
-                                        value={data.unit_id}
-                                        onChange={val => setData('unit_id', val.toString())}
+                                        value={data.unit_id || ''}
+                                        onChange={val => setData('unit_id', Number(val))}
                                         placeholder="Select Unit"
                                         error={errors.unit_id}
                                     />
