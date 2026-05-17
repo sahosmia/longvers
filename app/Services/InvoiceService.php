@@ -27,6 +27,7 @@ class InvoiceService
                 'id' => $data['id'],
                 'date' => $data['date'],
                 'client_id' => $clientId,
+                'outlet_id' => $data['outlet_id'],
                 'total' => $data['total'],
                 'paid' => $data['paid'],
                 'due' => $data['due'],

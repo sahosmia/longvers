@@ -29,9 +29,10 @@ class InvoiceController extends Controller
     public function create()
     {
         return Inertia::render('invoices/create', [
-            'products' => Product::with(['category', 'unit'])->get(),
+            'products' => Product::with(['category', 'unit', 'outletPrices'])->get(),
             'clients' => Client::all(),
             'categories' => \App\Models\Category::all(),
+            'outlets' => \App\Models\Outlet::all(),
         ]);
     }
 

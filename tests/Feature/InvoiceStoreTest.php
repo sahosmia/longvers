@@ -4,9 +4,11 @@ use App\Models\User;
 use App\Models\Client;
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\Outlet;
 
 test('invoice can be stored with existing client', function () {
     $user = User::factory()->create();
+    $outlet = Outlet::create(['name' => 'Test Outlet']);
     $category = Category::create(['name' => 'Test Category', 'slug' => 'test-category']);
     $product = Product::create([
         'name' => 'Test Product',
@@ -24,6 +26,7 @@ test('invoice can be stored with existing client', function () {
         'id' => 'INV-' . time(),
         'date' => now()->format('Y-m-d'),
         'client_id' => $client->id,
+        'outlet_id' => $outlet->id,
         'create_new_client' => false,
         'total' => 100,
         'paid' => 100,
@@ -70,6 +73,7 @@ test('invoice cannot be stored with empty client id when create_new_client is fa
 
 test('invoice can be stored with new client', function () {
     $user = User::factory()->create();
+    $outlet = Outlet::create(['name' => 'Test Outlet']);
     $category = Category::create(['name' => 'Test Category', 'slug' => 'test-category']);
     $product = Product::create([
         'name' => 'Test Product',
@@ -82,6 +86,7 @@ test('invoice can be stored with new client', function () {
         'id' => 'INV-' . (time() + 1),
         'date' => now()->format('Y-m-d'),
         'client_id' => '',
+        'outlet_id' => $outlet->id,
         'create_new_client' => true,
         'new_client_name' => 'New Client',
         'new_client_phone' => '01800000000',

@@ -26,6 +26,7 @@ class StoreInvoiceRequest extends FormRequest
             'due' => 'required|numeric',
             'status' => 'required|string|in:Processing,In House,Delivered',
             'method' => 'required|string|in:Cash,Bkash,Bank',
+            'outlet_id' => 'required|exists:outlets,id',
             'remarks' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.productId' => 'required|exists:products,id',
