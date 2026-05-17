@@ -459,9 +459,11 @@ export default function InvoiceForm({ invoice, products, clients, categories, ou
                             onChange={e => setData('status', e.target.value)}
                             className="w-full border border-neutral-200 dark:border-neutral-800 rounded-xl px-3 py-2.5 text-sm bg-transparent dark:text-neutral-100"
                         >
+                            <option value="Pending">Pending</option>
                             <option value="Processing">Processing</option>
                             <option value="In House">In House</option>
                             <option value="Delivered">Delivered</option>
+                            <option value="Cancelled">Cancelled</option>
                         </select>
                     </div>
 

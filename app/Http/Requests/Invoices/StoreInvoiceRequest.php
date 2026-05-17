@@ -25,7 +25,7 @@ class StoreInvoiceRequest extends FormRequest
             'total' => 'required|numeric|min:0',
             'paid' => 'required|numeric|min:0',
             'due' => 'required|numeric',
-            'status' => 'required|string|in:Processing,In House,Delivered',
+            'status' => 'required|string|in:Processing,In House,Delivered,Pending,Cancelled',
             'method' => 'required|string|in:Cash,Bkash,Bank',
             'remarks' => 'nullable|string',
             'discount_type' => 'required|string|in:Fixed,Percentage',

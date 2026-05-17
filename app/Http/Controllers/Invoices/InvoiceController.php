@@ -10,6 +10,7 @@ use App\Models\Outlet;
 use App\Models\Product;
 use App\Models\Client;
 use App\Services\InvoiceService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Inertia\Inertia;
 
 class InvoiceController extends Controller
@@ -66,6 +67,24 @@ class InvoiceController extends Controller
         return Inertia::render('invoices/show', [
             'invoice' => $invoice->load(['client', 'items.product']),
         ]);
+    }
+
+    public function updateStatus(\Illuminate\Http\Request $request, Invoice $invoice)
+    {
+        $validated = $request->validate([
+            'status' => 'required|string|in:Pending,Delivered,Cancelled,Processing,In House',
+        ]);
+
+        $invoice->update(['status' => $validated['status']]);
+
+        return redirect()->back()->with('success', 'Invoice status updated successfully.');
+    }
+
+    public function print(Invoice $invoice)
+    {
+        $invoice->load(['client', 'items.product']);
+        $pdf = Pdf::loadView('invoices.pdf', compact('invoice'));
+        return $pdf->stream('invoice-' . $invoice->invoice_uuid . '.pdf');
     }
 
     public function destroy(Invoice $invoice)

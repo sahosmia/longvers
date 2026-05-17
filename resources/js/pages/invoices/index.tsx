@@ -28,16 +28,41 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const formatCurrency = (n: number) => `৳${n.toLocaleString("en-BD")}`;
 
-function StatusBadge({ status }: { status: string }) {
+function StatusSelect({ invoice }: { invoice: Invoice }) {
+    const [loading, setLoading] = useState(false);
+
+    const handleStatusChange = (newStatus: string) => {
+        if (newStatus === invoice.status) return;
+        setLoading(true);
+        router.patch(route('invoices.update-status', invoice.id), { status: newStatus }, {
+            onFinish: () => setLoading(false),
+            preserveScroll: true,
+        });
+    };
+
     const map: any = {
+        Pending: "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800",
         Processing: "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800",
         "In House": "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800",
         Delivered: "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800",
+        Cancelled: "bg-red-100 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800",
     };
+
     return (
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${map[status] || "bg-neutral-100 text-neutral-600 border-neutral-200"}`}>
-            {status}
-        </span>
+        <div className="relative inline-block">
+            <select
+                value={invoice.status}
+                disabled={loading}
+                onChange={(e) => handleStatusChange(e.target.value)}
+                className={`appearance-none cursor-pointer inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border focus:outline-none transition-opacity ${loading ? 'opacity-50' : ''} ${map[invoice.status] || "bg-neutral-100 text-neutral-600 border-neutral-200"}`}
+            >
+                <option value="Pending">Pending</option>
+                <option value="Processing">Processing</option>
+                <option value="In House">In House</option>
+                <option value="Delivered">Delivered</option>
+                <option value="Cancelled">Cancelled</option>
+            </select>
+        </div>
     );
 }
 
@@ -110,7 +135,7 @@ export default function InvoiceHistory({ invoices }: InvoiceHistoryProps) {
                                         <td className="px-3 py-3 text-right">
                                             <span className={`font-medium ${Number(inv.due) > 0 ? "text-red-500" : "text-neutral-400"}`}>{formatCurrency(Number(inv.due))}</span>
                                         </td>
-                                        <td className="px-3 py-3 text-center"><StatusBadge status={inv.status} /></td>
+                                        <td className="px-3 py-3 text-center"><StatusSelect invoice={inv} /></td>
                                         <td className="px-3 py-3">
                                             <div className="flex items-center justify-center gap-1">
                                                 <Link href={route('invoices.show', inv.id)} className="p-1.5 text-neutral-400 hover:text-blue-600"><Eye className="w-4 h-4" /></Link>
