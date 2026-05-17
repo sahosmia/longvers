@@ -28,6 +28,8 @@ class UpdateInvoiceRequest extends FormRequest
             'status' => 'required|string|in:Processing,In House,Delivered',
             'method' => 'required|string|in:Cash,Bkash,Bank',
             'remarks' => 'nullable|string',
+            'discount_type' => 'required|string|in:Fixed,Percentage',
+            'discount_amount' => 'required|numeric|min:0',
             'items' => 'required|array|min:1',
             'items.*.productId' => 'required|exists:products,id',
             'items.*.qty' => 'required|integer|min:1',

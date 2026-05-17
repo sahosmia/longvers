@@ -46,6 +46,8 @@ test('invoice can be updated successfully with a unique invoice_uuid', function 
         'due' => 50,
         'status' => 'Delivered',
         'method' => 'Bank',
+        'discount_type' => 'Fixed',
+        'discount_amount' => 0,
         'items' => [
             ['productId' => $this->product->id, 'qty' => 2, 'price' => 100]
         ]
@@ -95,6 +97,8 @@ test('update fails if the modified invoice_uuid conflicts with an existing recor
         'due' => 0,
         'status' => 'Processing',
         'method' => 'Cash',
+        'discount_type' => 'Fixed',
+        'discount_amount' => 0,
         'items' => [
             ['productId' => $this->product->id, 'qty' => 2, 'price' => 100]
         ]
@@ -126,6 +130,8 @@ test('validation allows saving if the invoice_uuid remains unchanged during an e
         'due' => 0,
         'status' => 'Processing',
         'method' => 'Cash',
+        'discount_type' => 'Fixed',
+        'discount_amount' => 0,
         'items' => [
             ['productId' => $this->product->id, 'qty' => 2, 'price' => 100]
         ]

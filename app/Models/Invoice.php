@@ -17,6 +17,8 @@ class Invoice extends Model
         'status',
         'method',
         'remarks',
+        'discount_type',
+        'discount_amount',
     ];
 
     public function outlet()

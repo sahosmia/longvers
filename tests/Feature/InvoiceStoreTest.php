@@ -33,6 +33,8 @@ test('invoice can be stored with existing client', function () {
         'due' => 0,
         'status' => 'Processing',
         'method' => 'Cash',
+        'discount_type' => 'Fixed',
+        'discount_amount' => 0,
         'items' => [
             [
                 'productId' => $product->id,
@@ -63,6 +65,8 @@ test('invoice cannot be stored with empty client id when create_new_client is fa
         'due' => 0,
         'status' => 'Processing',
         'method' => 'Cash',
+        'discount_type' => 'Fixed',
+        'discount_amount' => 0,
         'items' => [
             ['productId' => 1, 'qty' => 1, 'price' => 100]
         ]
@@ -98,6 +102,8 @@ test('invoice can be stored with new client', function () {
         'due' => 0,
         'status' => 'Processing',
         'method' => 'Cash',
+        'discount_type' => 'Fixed',
+        'discount_amount' => 0,
         'items' => [
             [
                 'productId' => $product->id,

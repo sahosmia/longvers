@@ -34,6 +34,8 @@ class InvoiceService
                 'status' => $data['status'],
                 'method' => $data['method'],
                 'remarks' => $data['remarks'] ?? null,
+                'discount_type' => $data['discount_type'],
+                'discount_amount' => $data['discount_amount'],
             ]);
 
             foreach ($data['items'] as $item) {
@@ -92,6 +94,8 @@ class InvoiceService
                 'status' => $data['status'],
                 'method' => $data['method'],
                 'remarks' => $data['remarks'] ?? null,
+                'discount_type' => $data['discount_type'],
+                'discount_amount' => $data['discount_amount'],
             ]);
 
             // Delete old items

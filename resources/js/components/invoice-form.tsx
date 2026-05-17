@@ -49,6 +49,8 @@ export interface Invoice {
     status: string;
     method: string;
     remarks: string;
+    discount_type: string;
+    discount_amount: number;
     items: {
         product_id: number;
         qty: number;
@@ -91,6 +93,8 @@ export default function InvoiceForm({ invoice, products, clients, categories, ou
         status: invoice?.status || 'Processing',
         method: invoice?.method || 'Cash',
         remarks: invoice?.remarks || '',
+        discount_type: invoice?.discount_type || 'Fixed',
+        discount_amount: invoice?.discount_amount || 0 as string | number,
         items: invoice?.items.map(item => ({
             productId: item.product_id,
             name: item.product?.name || 'Unknown Product',
@@ -107,6 +111,20 @@ export default function InvoiceForm({ invoice, products, clients, categories, ou
         });
     }, [searchTerm, selectedCategory, products]);
 
+    const calculateTotals = (items: InvoiceItem[], paid: number | string, discountType: string, discountAmount: number | string) => {
+        const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
+        const disc = Number(discountAmount) || 0;
+        let discountValue = 0;
+        if (discountType === 'Percentage') {
+            discountValue = (subtotal * disc) / 100;
+        } else {
+            discountValue = disc;
+        }
+        const total = Math.max(0, subtotal - discountValue);
+        const due = total - (Number(paid) || 0);
+        return { total, due };
+    };
+
     const addItem = (product: Product) => {
         const existingIdx = data.items.findIndex((i) => i.productId === product.id);
         let newItems = [...data.items];
@@ -117,12 +135,12 @@ export default function InvoiceForm({ invoice, products, clients, categories, ou
             newItems.push({ productId: product.id, name: product.name, price: Number(product.price), qty: 1 });
         }
 
-        const newTotal = newItems.reduce((s, i) => s + i.price * i.qty, 0);
+        const { total, due } = calculateTotals(newItems, data.paid, data.discount_type, data.discount_amount);
         setData(d => ({
             ...d,
             items: newItems,
-            total: newTotal,
-            due: newTotal - (Number(d.paid) || 0)
+            total,
+            due
         }));
 
         setSearchTerm("");
@@ -134,32 +152,65 @@ export default function InvoiceForm({ invoice, products, clients, categories, ou
         let newItems = [...data.items];
         newItems[idx].qty = newQty;
 
-        const newTotal = newItems.reduce((s, i) => s + i.price * i.qty, 0);
+        const { total, due } = calculateTotals(newItems, data.paid, data.discount_type, data.discount_amount);
         setData(d => ({
             ...d,
             items: newItems,
-            total: newTotal,
-            due: newTotal - (Number(d.paid) || 0)
+            total,
+            due
+        }));
+    };
+
+    const updatePrice = (idx: number, newPrice: number) => {
+        let newItems = [...data.items];
+        newItems[idx].price = newPrice;
+
+        const { total, due } = calculateTotals(newItems, data.paid, data.discount_type, data.discount_amount);
+        setData(d => ({
+            ...d,
+            items: newItems,
+            total,
+            due
         }));
     };
 
     const removeItem = (idx: number) => {
         const newItems = data.items.filter((_, i) => i !== idx);
-        const newTotal = newItems.reduce((s, i) => s + i.price * i.qty, 0);
+        const { total, due } = calculateTotals(newItems, data.paid, data.discount_type, data.discount_amount);
         setData(d => ({
             ...d,
             items: newItems,
-            total: newTotal,
-            due: newTotal - (Number(d.paid) || 0)
+            total,
+            due
         }));
     };
 
     const handlePaidChange = (val: string) => {
-        const paid = Number(val) || 0;
+        const { total } = calculateTotals(data.items, val, data.discount_type, data.discount_amount);
         setData(d => ({
             ...d,
             paid: val,
-            due: d.total - paid
+            due: total - (Number(val) || 0)
+        }));
+    };
+
+    const handleDiscountTypeChange = (type: string) => {
+        const { total, due } = calculateTotals(data.items, data.paid, type, data.discount_amount);
+        setData(d => ({
+            ...d,
+            discount_type: type,
+            total,
+            due
+        }));
+    };
+
+    const handleDiscountAmountChange = (val: string) => {
+        const { total, due } = calculateTotals(data.items, data.paid, data.discount_type, val);
+        setData(d => ({
+            ...d,
+            discount_amount: val,
+            total,
+            due
         }));
     };
 
@@ -172,7 +223,9 @@ export default function InvoiceForm({ invoice, products, clients, categories, ou
         }
     };
 
-    const categoryNames = ["All", ...categories.map(c => c.name)];
+    const usedCategoryIds = new Set(products.map(p => p.category_id));
+    const activeCategories = categories.filter(c => usedCategoryIds.has(c.id));
+    const categoryNames = ["All", ...activeCategories.map(c => c.name)];
     const clientOptions = clients.map(c => ({ label: `${c.name} (${c.phone})`, value: c.id }));
     const outletOptions = outlets.map(o => ({ label: o.name, value: o.id }));
 
@@ -287,7 +340,14 @@ export default function InvoiceForm({ invoice, products, clients, categories, ou
                                                         <button type="button" onClick={() => updateQty(idx, item.qty + 1)} className="w-7 h-7 rounded-lg bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400">+</button>
                                                     </div>
                                                 </td>
-                                                <td className="px-3 py-3 text-right font-medium">{formatCurrency(item.price)}</td>
+                                                <td className="px-3 py-3 text-right font-medium">
+                                                    <Input
+                                                        type="number"
+                                                        value={item.price}
+                                                        onChange={e => updatePrice(idx, Number(e.target.value))}
+                                                        className="h-8 w-24 text-right text-xs"
+                                                    />
+                                                </td>
                                                 <td className="px-3 py-3 text-right font-bold text-neutral-900 dark:text-neutral-100">{formatCurrency(item.price * item.qty)}</td>
                                                 <td className="px-3 py-3 text-center">
                                                     <button type="button" onClick={() => removeItem(idx)} className="p-1.5 text-red-400 hover:text-red-600">
@@ -406,32 +466,60 @@ export default function InvoiceForm({ invoice, products, clients, categories, ou
                     </div>
 
                     <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5 space-y-3">
-                        <h3 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 flex items-center gap-2"><CreditCard className="w-4 h-4" /> Payment</h3>
-                        <div className="flex gap-2">
-                            {['Cash', 'Bkash', 'Bank'].map(m => (
-                                <button
-                                    key={m}
-                                    type="button"
-                                    onClick={() => setData('method', m)}
-                                    className={`flex-1 py-2 rounded-xl text-xs font-semibold border ${data.method === m ? 'bg-blue-50 border-blue-300 text-blue-600' : 'border-neutral-200 dark:border-neutral-800 text-neutral-500'}`}
-                                >
-                                    {m}
-                                </button>
-                            ))}
+                            <h3 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 flex items-center gap-2"><CreditCard className="w-4 h-4" /> Discount & Payment</h3>
+                            <div className="space-y-3">
+                                <div className="flex gap-2">
+                                    {['Fixed', 'Percentage'].map(t => (
+                                        <button
+                                            key={t}
+                                            type="button"
+                                            onClick={() => handleDiscountTypeChange(t)}
+                                            className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold border uppercase tracking-wider ${data.discount_type === t ? 'bg-amber-50 border-amber-300 text-amber-600' : 'border-neutral-200 dark:border-neutral-800 text-neutral-500'}`}
+                                        >
+                                            {t}
+                                        </button>
+                                    ))}
+                                </div>
+                                <Input
+                                    type="number"
+                                    placeholder="Discount Amount"
+                                    value={data.discount_amount}
+                                    onChange={e => handleDiscountAmountChange(e.target.value)}
+                                    className="h-9 text-xs"
+                                />
                         </div>
-                        <input
-                            type="number"
-                            placeholder="Paid Amount"
-                            value={data.paid}
-                            onChange={e => handlePaidChange(e.target.value)}
-                            className="w-full border border-neutral-200 dark:border-neutral-800 rounded-xl px-3 py-2.5 text-sm bg-transparent dark:text-neutral-100"
-                        />
+
+                            <div className="pt-2 border-t border-neutral-100 dark:border-neutral-800">
+                                <div className="flex gap-2 mb-3">
+                                    {['Cash', 'Bkash', 'Bank'].map(m => (
+                                        <button
+                                            key={m}
+                                            type="button"
+                                            onClick={() => setData('method', m)}
+                                            className={`flex-1 py-2 rounded-xl text-xs font-semibold border ${data.method === m ? 'bg-blue-50 border-blue-300 text-blue-600' : 'border-neutral-200 dark:border-neutral-800 text-neutral-500'}`}
+                                        >
+                                            {m}
+                                        </button>
+                                    ))}
+                                </div>
+                                <Input
+                                    type="number"
+                                    placeholder="Paid Amount"
+                                    value={data.paid}
+                                    onChange={e => handlePaidChange(e.target.value)}
+                                    className="h-9 text-xs"
+                                />
+                            </div>
                     </div>
 
                     <div className="bg-neutral-900 dark:bg-neutral-100 rounded-2xl p-5 text-white dark:text-neutral-900">
                         <h3 className="text-sm font-semibold text-neutral-400 dark:text-neutral-600 mb-4">Invoice Summary</h3>
                         <div className="space-y-2 text-sm">
-                            <div className="flex justify-between"><span>Subtotal</span><span>{formatCurrency(data.total)}</span></div>
+                                <div className="flex justify-between"><span>Subtotal</span><span>{formatCurrency(data.items.reduce((s, i) => s + i.price * i.qty, 0))}</span></div>
+                                <div className="flex justify-between text-amber-400">
+                                    <span>Discount ({data.discount_type})</span>
+                                    <span>{data.discount_type === 'Percentage' ? `${data.discount_amount}%` : formatCurrency(Number(data.discount_amount))}</span>
+                                </div>
                             <div className="flex justify-between text-emerald-400"><span>Paid</span><span>{formatCurrency(Number(data.paid) || 0)}</span></div>
                             <div className="flex justify-between text-red-400"><span>Due</span><span>{formatCurrency(data.due)}</span></div>
                             <div className="border-t border-white/10 dark:border-neutral-200 pt-2 mt-2 flex justify-between text-lg font-bold">
